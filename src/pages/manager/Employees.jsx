@@ -1,5 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Search } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Eye,
+  EyeOff,
+  Pencil,
+  Power,
+  Trash2,
+} from 'lucide-react';
 import api from '../../api/axios.js';
 import { useToast } from '../../context/ToastContext.jsx';
 import Card from '../../components/ui/Card.jsx';
@@ -21,6 +29,7 @@ export default function ManagerEmployees() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '', role: 'sales',
     department: '', designation: '',
@@ -83,6 +92,26 @@ export default function ManagerEmployees() {
     }
   };
 
+  const deleteEmployee = async (emp) => {
+  const confirmed = window.confirm(
+    `Are you sure you want to permanently delete ${emp.name}?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await api.delete(`/employees/${emp._id}`);
+
+    success('Employee deleted successfully');
+
+    load();
+  } catch (err) {
+    toastError(
+      err.response?.data?.message || 'Failed to delete employee'
+    );
+  }
+};
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -123,16 +152,85 @@ export default function ManagerEmployees() {
             { header: 'Role', render: (r) => <Badge color={statusColor(r.role)}>{r.role}</Badge> },
             { header: 'Department', key: 'department' },
             { header: 'Status', render: (r) => <Badge color={r.isActive ? 'green' : 'red'}>{r.isActive ? 'Active' : 'Disabled'}</Badge> },
-            {
-              header: 'Actions', className: 'text-right', render: (r) => (
-                <div className="flex justify-end gap-2">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(r)}>Edit</Button>
-                  <Button size="sm" variant={r.isActive ? 'danger' : 'success'} onClick={() => toggleStatus(r)}>
-                    {r.isActive ? 'Disable' : 'Enable'}
-                  </Button>
-                </div>
-              ),
-            },
+{
+  header: 'Actions',
+  className: 'text-right',
+  render: (r) => (
+    <div className="flex items-center justify-end gap-2">
+
+      {/* Edit */}
+      <button
+        type="button"
+        onClick={() => openEdit(r)}
+        title="Edit employee"
+        className="
+          group flex h-9 w-9 items-center justify-center
+          rounded-lg border border-gray-200
+          bg-white text-gray-500
+          transition-all duration-200
+          hover:border-blue-200
+          hover:bg-blue-50
+          hover:text-blue-600
+          active:scale-95
+        "
+      >
+        <Pencil
+          size={16}
+          strokeWidth={2}
+          className="transition-transform duration-200 group-hover:scale-110"
+        />
+      </button>
+
+      {/* Enable / Disable */}
+      <button
+        type="button"
+        onClick={() => toggleStatus(r)}
+        title={r.isActive ? 'Disable employee' : 'Enable employee'}
+        className={`
+          group flex h-9 w-9 items-center justify-center
+          rounded-lg border
+          transition-all duration-200
+          active:scale-95
+          ${
+            r.isActive
+              ? 'border-orange-200 bg-orange-50 text-orange-500 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-600'
+              : 'border-green-200 bg-green-50 text-green-600 hover:border-green-300 hover:bg-green-100 hover:text-green-700'
+          }
+        `}
+      >
+        <Power
+          size={16}
+          strokeWidth={2}
+          className="transition-transform duration-200 group-hover:scale-110"
+        />
+      </button>
+
+      {/* Delete */}
+      <button
+        type="button"
+        onClick={() => deleteEmployee(r)}
+        title="Delete employee"
+        className="
+          group flex h-9 w-9 items-center justify-center
+          rounded-lg border border-red-200
+          bg-red-50 text-red-500
+          transition-all duration-200
+          hover:border-red-300
+          hover:bg-red-100
+          hover:text-red-600
+          active:scale-95
+        "
+      >
+        <Trash2
+          size={16}
+          strokeWidth={2}
+          className="transition-transform duration-200 group-hover:scale-110"
+        />
+      </button>
+
+    </div>
+  ),
+},
           ]}
         />
         <Pagination pagination={pagination} onPageChange={setPage} />
@@ -194,13 +292,24 @@ export default function ManagerEmployees() {
           disabled={!!editing}
         />
 
-        <Input
-          label={editing ? 'Password (leave blank to keep)' : 'Password'}
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required={!editing}
-        />
+       <div className="relative">
+  <Input
+    label={editing ? 'Password (leave blank to keep)' : 'Password'}
+    type={showPassword ? 'text' : 'password'}
+    value={form.password}
+    onChange={(e) => setForm({ ...form, password: e.target.value })}
+    required={!editing}
+  />
+
+  <button
+    type="button"
+    onClick={() => setShowPassword((prev) => !prev)}
+    className="absolute right-3 top-[34px] flex items-center justify-center text-gray-400 transition hover:text-gray-600"
+    aria-label={showPassword ? 'Hide password' : 'Show password'}
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+</div>
 
         <Input
           label="Phone"
