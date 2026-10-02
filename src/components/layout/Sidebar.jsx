@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, UserCircle, FolderKanban, CheckSquare,
-  Wallet, CalendarCheck, ClipboardList, Bell, MessageSquare, Activity, LogOut, X,  BookOpen ,FileText
+  Wallet, CalendarCheck, ClipboardList, Bell, MessageSquare, Activity, LogOut, X,  BookOpen ,FileText,Search
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -17,6 +17,8 @@ const menus = {
     { to: '/manager/notifications', label: 'Notifications', icon: Bell },
     { to: '/manager/guides', label: 'Guides', icon: BookOpen },
     { to: '/manager/details', label: 'Details', icon: FileText },
+    { to: '/manager/seo', label: 'SEO', icon: Search, },
+      { to: '/manager/seo/plans',  label: 'SEO Plans',  icon: ClipboardList },
   
     // { to: '/manager/activity-logs', label: 'Activity Logs', icon: Activity },
   ],

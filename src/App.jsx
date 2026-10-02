@@ -39,6 +39,9 @@ import DeveloperAttendance from './pages/developer/Attendance.jsx';
 import DeveloperNotifications from './pages/developer/Notifications.jsx';
 import Guide from './pages/developer/Guide.jsx';
 
+import SEO from "./pages/manager/seo/SEO";
+import SEOPlans from "./pages/manager/seo/SEOPlans";
+
 function RoleRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -61,6 +64,10 @@ export default function App() {
           <Route path="clients/:id" element={<ManagerClientDetails />} />
           <Route path="projects" element={<ManagerProjects />} />
           <Route path="projects/:id" element={<ManagerProjectDetails />} />
+
+          {/* SEO */}
+          <Route path="seo" element={<SEO />} />
+          <Route path="seo/plans" element={<SEOPlans />} />
           <Route path="payments" element={<ManagerPayments />} />
           <Route path="attendance" element={<ManagerAttendance />} />
           <Route path="daily-status" element={<ManagerDailyStatus />} />
@@ -69,6 +76,7 @@ export default function App() {
           <Route path="activity-logs" element={<ManagerActivityLogs />} />
           <Route path="guides" element={<ManagerGuides />} />
           <Route path="details" element={<ManagerDetails />} />
+
 
         </Route>
 
