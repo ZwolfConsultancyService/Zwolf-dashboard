@@ -17,7 +17,9 @@ export default function Navbar({ onToggleSidebar }) {
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <NotificationDropdown />
+          {user?.role !== 'client' && (
+            <NotificationDropdown />
+          )}
           <div className="hidden md:flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold">
               {user?.name?.charAt(0)}

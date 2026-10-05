@@ -35,6 +35,7 @@ export default function Projects() {
     projectName: '', client: '', salesEmployee: '', developers: [],
     description: '', technology: '', startDate: '', deadline: '',
     priority: 'Medium', status: 'Not Started', progress: 0, requirements: '',
+     totalAmount: '',
   });
 
   const load = useCallback(async () => {
@@ -63,18 +64,33 @@ export default function Projects() {
     }).catch(() => {});
   }, []);
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.post('/projects', form);
-      success('Project created');
-      setModalOpen(false);
-      load();
-    } catch (err) {
-      toastError(err.response?.data?.message || 'Failed to create project');
-    } finally { setSaving(false); }
-  };
+ const submit = async (e) => {
+  e.preventDefault();
+  setSaving(true);
+  try {
+    /* 🆕 totalAmount ko number me convert karo */
+    const payload = {
+      ...form,
+      totalAmount: Number(form.totalAmount) || 0,
+    };
+
+    await api.post('/projects', payload);
+    success('Project created');
+    setModalOpen(false);
+
+    /* Reset form */
+    setForm({
+      projectName: '', client: '', salesEmployee: '', developers: [],
+      description: '', technology: '', startDate: '', deadline: '',
+      priority: 'Medium', status: 'Not Started', progress: 0, requirements: '',
+      totalAmount: '',
+    });
+
+    load();
+  } catch (err) {
+    toastError(err.response?.data?.message || 'Failed to create project');
+  } finally { setSaving(false); }
+};
 
   const toggleDev = (id) => {
     setForm((f) => ({
@@ -237,6 +253,23 @@ export default function Projects() {
           }
           placeholder="e.g. React, Node.js, MongoDB"
         />
+        <div className="md:col-span-2">
+  <Input
+    label="Project Total Amount (₹)"
+    type="number"
+    min="0"
+    step="0.01"
+    value={form.totalAmount}
+    onChange={(e) =>
+      setForm({ ...form, totalAmount: e.target.value })
+    }
+    placeholder="e.g. 50000"
+  />
+
+  <p className="mt-1 text-xs text-gray-500">
+    💡 Client is project ka total price dekhega payments page pe
+  </p>
+</div>
       </div>
     </div>
 

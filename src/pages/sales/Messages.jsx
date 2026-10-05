@@ -1,7 +1,7 @@
 import MessagesPage from '../../components/messages/MessagesPage.jsx';
 
-export default function ManagerMessages() {
+export default function SalesMessages() {
   return (
-    <MessagesPage mode="manager" />
+    <MessagesPage mode="sales" />
   );
 }
