@@ -54,6 +54,7 @@ import ManagerClientRequests from './pages/manager/ClientRequests.jsx';
 import MyMeetings from './pages/client/MyMeetings.jsx';
 import MyProjects from './pages/client/MyProjects.jsx';
 import ClientPayments from './pages/client/Payments.jsx';
+import SalesClientRequests from './pages/sales/ClientRequests.jsx';
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -239,7 +240,10 @@ export default function App() {
             path="clients"
             element={<SalesClients />}
           />
-
+          <Route
+            path="client-requests"
+            element={<SalesClientRequests />}
+          />
           <Route
             path="clients/:id"
             element={<SalesClientDetails />}

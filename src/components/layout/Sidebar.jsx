@@ -116,6 +116,11 @@ const menus = {
       icon: FolderKanban,
     },
     {
+      to : '/sales/client-requests',
+      label: 'Client Requests',
+      icon: Inbox,
+    },
+    {
       to: '/sales/payments',
       label: 'Payments',
       icon: Wallet,
