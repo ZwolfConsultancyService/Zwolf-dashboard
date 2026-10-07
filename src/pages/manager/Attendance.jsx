@@ -7,24 +7,34 @@ import {
   LogIn,
   LogOut,
   Timer,
+  Trash2,
+  Download,
 } from 'lucide-react';
 
+import * as XLSX from 'xlsx';
+
 import api from '../../api/axios.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import Card from '../../components/ui/Card.jsx';
 import Table from '../../components/ui/Table.jsx';
 import Badge, { statusColor } from '../../components/ui/Badge.jsx';
 import Select from '../../components/ui/Select.jsx';
 import Input from '../../components/ui/Input.jsx';
+import Button from '../../components/ui/Button.jsx';
 import Pagination from '../../components/ui/Pagination.jsx';
 import { formatMinutes, formatDate } from '../../utils/format.js';
 
 export default function ManagerAttendance() {
+  const { success, error: toastError } = useToast();
+
   const [records, setRecords] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,6 +66,152 @@ export default function ManagerAttendance() {
         })
       : '—';
 
+  /* =========================================================
+     🆕 DELETE SINGLE RECORD
+  ========================================================= */
+
+  const removeRecord = async (record) => {
+    if (
+      !confirm(
+        `Delete attendance record for "${
+          record.employee?.name || 'employee'
+        }" on ${formatDate(record.date)}?\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/attendance/${record._id}`);
+      success('Attendance record deleted');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to delete record'
+      );
+    }
+  };
+
+  /* =========================================================
+     🆕 DELETE ALL (filtered)
+  ========================================================= */
+
+  const removeAll = async () => {
+    const filterDesc =
+      date || status
+        ? `with current filters${date ? ` (Date: ${date})` : ''}${
+            status ? ` (Status: ${status})` : ''
+          }`
+        : 'ALL';
+
+    if (
+      !confirm(
+        `⚠️ Delete ${filterDesc} attendance records?\n\nThis will permanently delete all matching records. This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    /* Double confirm */
+    if (
+      !confirm(
+        'Are you absolutely sure? This cannot be undone.'
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      const params = {};
+      if (date) params.date = date;
+      if (status) params.status = status;
+
+      await api.delete('/attendance/delete-all', { params });
+
+      success('Attendance records deleted');
+      setPage(1);
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to delete records'
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  /* =========================================================
+     🆕 EXPORT TO EXCEL
+  ========================================================= */
+
+  const exportToExcel = async () => {
+    try {
+      setExporting(true);
+
+      /* Fetch all records matching filters (not just current page) */
+      const params = { page: 1, limit: 1000 };
+      if (status) params.status = status;
+      if (date) params.date = date;
+
+      const { data } = await api.get('/attendance', { params });
+
+      const allRecords = data.data || [];
+
+      if (allRecords.length === 0) {
+        toastError('No records to export');
+        return;
+      }
+
+      /* Build Excel rows */
+      const rows = allRecords.map((r, idx) => ({
+        'S.No': idx + 1,
+        Employee: r.employee?.name || '—',
+        Role: r.employee?.role || '—',
+        Date: r.date ? formatDate(r.date) : '—',
+        'Login Time': fmtTime(r.loginTime),
+        'Logout Time': fmtTime(r.logoutTime),
+        'Working Hours': formatMinutes(r.workingMinutes),
+        Status: r.status || '—',
+      }));
+
+      /* Create worksheet + workbook */
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+      /* Set column widths */
+      worksheet['!cols'] = [
+        { wch: 6 },
+        { wch: 22 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 12 },
+      ];
+
+      /* File name with date filter */
+      const fileName = date
+        ? `attendance-${date}.xlsx`
+        : `attendance-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+
+      success('Excel exported successfully');
+    } catch (err) {
+      console.error('export err:', err);
+      toastError('Failed to export');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
@@ -81,12 +237,82 @@ export default function ManagerAttendance() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
-            <UserRound size={16} className="text-blue-600" />
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Export Button */}
+            <button
+              type="button"
+              onClick={exportToExcel}
+              disabled={exporting || loading}
+              className="
+                inline-flex
+                items-center
+                gap-2
+                rounded-xl
+                border
+                border-emerald-200
+                bg-emerald-50
+                px-4
+                py-2.5
+                text-sm
+                font-semibold
+                text-emerald-700
+                transition-all
+                duration-200
+                hover:border-emerald-300
+                hover:bg-emerald-100
+                focus:outline-none
+                focus:ring-2
+                focus:ring-emerald-500/20
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            >
+              <Download size={16} />
+              {exporting ? 'Exporting...' : 'Export Excel'}
+            </button>
 
-            <span className="text-sm font-medium text-gray-600">
-              {records.length} Records
-            </span>
+            {/* Delete All Button */}
+            <button
+              type="button"
+              onClick={removeAll}
+              disabled={deleting || records.length === 0}
+              className="
+                inline-flex
+                items-center
+                gap-2
+                rounded-xl
+                border
+                border-red-200
+                bg-red-50
+                px-4
+                py-2.5
+                text-sm
+                font-semibold
+                text-red-600
+                transition-all
+                duration-200
+                hover:border-red-300
+                hover:bg-red-100
+                focus:outline-none
+                focus:ring-2
+                focus:ring-red-500/20
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+              title="Delete all filtered records"
+            >
+              <Trash2 size={16} />
+              {deleting ? 'Deleting...' : 'Delete All'}
+            </button>
+
+            {/* Records Count */}
+            <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
+              <UserRound size={16} className="text-blue-600" />
+
+              <span className="text-sm font-medium text-gray-600">
+                {records.length} Records
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -259,6 +485,47 @@ export default function ManagerAttendance() {
                   <Badge color={statusColor(r.status)}>
                     {r.status}
                   </Badge>
+                ),
+              },
+
+              /* 🆕 DELETE ACTION */
+              {
+                header: 'Actions',
+                className: 'text-right',
+                render: (r) => (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => removeRecord(r)}
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+                        gap-1.5
+                        rounded-lg
+                        border
+                        border-red-200
+                        bg-red-50
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-semibold
+                        text-red-600
+                        transition-all
+                        duration-200
+                        hover:border-red-300
+                        hover:bg-red-100
+                        hover:text-red-700
+                        focus:outline-none
+                        focus:ring-2
+                        focus:ring-red-500/20
+                      "
+                      title="Delete record"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
+                  </div>
                 ),
               },
             ]}

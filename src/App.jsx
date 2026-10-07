@@ -56,6 +56,9 @@ import MyProjects from './pages/client/MyProjects.jsx';
 import ClientPayments from './pages/client/Payments.jsx';
 import SalesClientRequests from './pages/sales/ClientRequests.jsx';
 
+import ManagerProducts from './pages/manager/Products.jsx';
+import ClientProducts from './pages/client/Products.jsx';
+import SalesProducts from './pages/sales/Products.jsx';
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -127,6 +130,7 @@ export default function App() {
             }
           />
           <Route path="client-requests" element={<ManagerClientRequests />} />
+          <Route path="products" element={<ManagerProducts />} />
 
           <Route
             path="dashboard"
@@ -230,7 +234,7 @@ export default function App() {
               />
             }
           />
-
+<Route path="products" element={<SalesProducts />} />
           <Route
             path="dashboard"
             element={<SalesDashboard />}
@@ -381,6 +385,7 @@ export default function App() {
               />
             }
           />
+          <Route path="products" element={<ClientProducts />} />
 
           {/* Client Dashboard */}
           <Route

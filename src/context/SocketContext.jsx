@@ -18,6 +18,7 @@ export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
   const [socket, setSocket] = useState(null);
   const [newMessageEvent, setNewMessageEvent] = useState(null);
+  const [newNotificationEvent, setNewNotificationEvent] = useState(null);
   const [seenEvent, setSeenEvent] = useState(null);
   const [clearedEvent, setClearedEvent] = useState(null);
 
@@ -51,10 +52,19 @@ export const SocketProvider = ({ children }) => {
     const API_URL =
       import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
+    // const newSocket = io(API_URL, {
+    //   auth: { token },
+    //   transports: ['websocket', 'polling'],
+    // });
+
     const newSocket = io(API_URL, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-    });
+  auth: { token },
+  transports: ['polling', 'websocket'],  // 🆕 Polling first
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: 10,
+  withCredentials: true,
+});
 
     newSocket.on('connect', () => {
       console.log('✅ Socket connected');
@@ -63,6 +73,12 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('new-message', (data) => {
       console.log('🔔 New message event:', data);
       setNewMessageEvent({ ...data, _ts: Date.now() });
+    });
+
+    /* 🆕 NEW NOTIFICATION EVENT */
+    newSocket.on('new-notification', (data) => {
+      console.log('🔔 New notification event:', data);
+      setNewNotificationEvent({ ...data, _ts: Date.now() });
     });
 
     newSocket.on('messages-seen', (data) => {
@@ -90,6 +106,7 @@ export const SocketProvider = ({ children }) => {
       value={{
         socket,
         newMessageEvent,
+        newNotificationEvent,   /* 🆕 */
         seenEvent,
         clearedEvent,
       }}

@@ -7,9 +7,11 @@ import {
   CalendarDays,
   WalletCards,
   UserCheck,
+  Trash2,
 } from 'lucide-react';
 
 import api from '../../api/axios.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import Card from '../../components/ui/Card.jsx';
 import Table from '../../components/ui/Table.jsx';
 import Badge from '../../components/ui/Badge.jsx';
@@ -17,6 +19,8 @@ import Pagination from '../../components/ui/Pagination.jsx';
 import { formatCurrency, formatDate } from '../../utils/format.js';
 
 export default function ManagerPayments() {
+  const { success, error: toastError } = useToast();
+
   const [payments, setPayments] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -43,6 +47,32 @@ export default function ManagerPayments() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /* =========================================================
+     🆕 DELETE PAYMENT
+  ========================================================= */
+
+  const removePayment = async (payment) => {
+    if (
+      !confirm(
+        `Delete payment of ${formatCurrency(
+          payment.amount
+        )} from "${payment.client?.clientName || 'client'}"?\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/payments/${payment._id}`);
+      success('Payment deleted successfully');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message || 'Failed to delete payment'
+      );
+    }
+  };
 
   return (
     <div className="space-y-6 pb-8">
@@ -189,6 +219,47 @@ export default function ManagerPayments() {
                     <span className="text-sm font-medium text-gray-700">
                       {r.createdBy?.name || '—'}
                     </span>
+                  </div>
+                ),
+              },
+
+              /* 🆕 DELETE ACTION */
+              {
+                header: 'Actions',
+                className: 'text-right',
+                render: (r) => (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => removePayment(r)}
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+                        gap-1.5
+                        rounded-lg
+                        border
+                        border-red-200
+                        bg-red-50
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-semibold
+                        text-red-600
+                        transition-all
+                        duration-200
+                        hover:border-red-300
+                        hover:bg-red-100
+                        hover:text-red-700
+                        focus:outline-none
+                        focus:ring-2
+                        focus:ring-red-500/20
+                      "
+                      title="Delete payment"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
                   </div>
                 ),
               },

@@ -8,6 +8,7 @@ import {
   Megaphone,
   Clock3,
   MessageSquareText,
+  Trash2,
 } from 'lucide-react';
 
 import api from '../../api/axios.js';
@@ -103,6 +104,31 @@ export default function ManagerNotifications() {
         ? f.recipients.filter((x) => x !== id)
         : [...f.recipients, id],
     }));
+  };
+
+  /* =========================================================
+     🆕 DELETE NOTIFICATION
+  ========================================================= */
+
+  const removeNotification = async (notification) => {
+    if (
+      !confirm(
+        `Delete notification "${notification.title}"?\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/notifications/${notification._id}`);
+      success('Notification deleted successfully');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to delete notification'
+      );
+    }
   };
 
   return (
@@ -208,10 +234,46 @@ export default function ManagerNotifications() {
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base">
-                            {n.title}
-                          </h3>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base">
+                              {n.title}
+                            </h3>
+
+                            {/* 🆕 DELETE BUTTON */}
+                            <button
+                              type="button"
+                              onClick={() => removeNotification(n)}
+                              className="
+                                shrink-0
+                                inline-flex
+                                items-center
+                                justify-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-red-200
+                                bg-red-50
+                                px-3
+                                py-1.5
+                                text-xs
+                                font-semibold
+                                text-red-600
+                                transition-all
+                                duration-200
+                                hover:border-red-300
+                                hover:bg-red-100
+                                hover:text-red-700
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-red-500/20
+                              "
+                              title="Delete notification"
+                            >
+                              <Trash2 size={13} />
+                              Delete
+                            </button>
+                          </div>
 
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
@@ -229,10 +291,6 @@ export default function ManagerNotifications() {
                             </span>
                           </div>
                         </div>
-
-                        <Badge color="blue">
-                          {n.recipientType}
-                        </Badge>
                       </div>
 
                       <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
@@ -241,11 +299,17 @@ export default function ManagerNotifications() {
                         </p>
                       </div>
 
-                      <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
-                        <Users size={13} />
-                        <span>
-                          Sent to {n.recipientType}
-                        </span>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <Users size={13} />
+                          <span>
+                            Sent to {n.recipientType}
+                          </span>
+                        </div>
+
+                        <Badge color="blue">
+                          {n.recipientType}
+                        </Badge>
                       </div>
                     </div>
                   </div>

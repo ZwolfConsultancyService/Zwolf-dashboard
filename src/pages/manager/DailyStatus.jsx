@@ -8,9 +8,11 @@ import {
   LoaderCircle,
   AlertCircle,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
 
 import api from '../../api/axios.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import Card from '../../components/ui/Card.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Badge from '../../components/ui/Badge.jsx';
@@ -20,6 +22,8 @@ import Loader from '../../components/ui/Loader.jsx';
 import { formatDate } from '../../utils/format.js';
 
 export default function ManagerDailyStatus() {
+  const { success, error: toastError } = useToast();
+
   const [records, setRecords] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -46,6 +50,33 @@ export default function ManagerDailyStatus() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /* =========================================================
+     🆕 DELETE RECORD
+  ========================================================= */
+
+  const removeRecord = async (record) => {
+    if (
+      !confirm(
+        `Delete daily status report of "${
+          record.employee?.name || 'employee'
+        }" on ${formatDate(record.date)}?\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/daily-status/${record._id}`);
+      success('Daily status deleted successfully');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to delete daily status'
+      );
+    }
+  };
 
   return (
     <div className="space-y-6 pb-8">
@@ -188,9 +219,44 @@ export default function ManagerDailyStatus() {
                         </div>
                       </div>
 
-                      <Badge color="blue">
-                        {r.status}
-                      </Badge>
+                      <div className="flex items-center gap-3">
+                        <Badge color="blue">
+                          {r.status}
+                        </Badge>
+
+                        {/* 🆕 DELETE BUTTON */}
+                        <button
+                          type="button"
+                          onClick={() => removeRecord(r)}
+                          className="
+                            inline-flex
+                            items-center
+                            justify-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            border-red-200
+                            bg-red-50
+                            px-3
+                            py-1.5
+                            text-xs
+                            font-semibold
+                            text-red-600
+                            transition-all
+                            duration-200
+                            hover:border-red-300
+                            hover:bg-red-100
+                            hover:text-red-700
+                            focus:outline-none
+                            focus:ring-2
+                            focus:ring-red-500/20
+                          "
+                          title="Delete record"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
 

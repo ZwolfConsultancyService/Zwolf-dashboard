@@ -7,6 +7,11 @@ import {
   ListTodo,
   ArrowRight,
   FileText,
+  Trash2,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
+  X,
 } from 'lucide-react';
 import api from '../../api/axios.js';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -20,6 +25,7 @@ export default function SalesDailyStatus() {
 
   const [records, setRecords] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   const [form, setForm] = useState({
     completedWork: '',
@@ -75,6 +81,60 @@ export default function SalesDailyStatus() {
       setSaving(false);
     }
   };
+
+  /* =========================================================
+     🆕 DELETE REPORT
+  ========================================================= */
+
+  const removeReport = async (record) => {
+    if (
+      !confirm(
+        `Delete your daily status report for ${formatDate(
+          record.date
+        )}?\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/daily-status/${record._id}`);
+      success('Report deleted successfully');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to delete report'
+      );
+    }
+  };
+
+  /* =========================================================
+     🆕 EDIT REPORT (load into form)
+  ========================================================= */
+
+  const editReport = (record) => {
+    setForm({
+      completedWork: record.completedWork || '',
+      workInProgress: record.workInProgress || '',
+      pendingWork: record.pendingWork || '',
+      blockers: record.blockers || '',
+      nextPlan: record.nextPlan || '',
+    });
+
+    /* Scroll to top */
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /* =========================================================
+     🆕 TOGGLE EXPAND
+  ========================================================= */
+
+  const toggleExpand = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
 
   const fields = [
     {
@@ -179,7 +239,6 @@ export default function SalesDailyStatus() {
       ===================================================== */}
       <Card>
 
-        {/* Card Header */}
         <div className="
           border-b
           border-gray-100
@@ -215,7 +274,6 @@ export default function SalesDailyStatus() {
         </div>
 
 
-        {/* Form */}
         <form
           onSubmit={submit}
           className="space-y-5 p-5"
@@ -239,7 +297,6 @@ export default function SalesDailyStatus() {
                 "
               >
 
-                {/* Label */}
                 <div className="mb-3 flex items-start gap-3">
 
                   <div
@@ -278,7 +335,6 @@ export default function SalesDailyStatus() {
                 </div>
 
 
-                {/* Textarea */}
                 <textarea
                   id={field.key}
                   rows={3}
@@ -319,7 +375,6 @@ export default function SalesDailyStatus() {
           })}
 
 
-          {/* Submit Area */}
           <div className="
             flex
             flex-col
@@ -377,7 +432,6 @@ export default function SalesDailyStatus() {
       ===================================================== */}
       <Card>
 
-        {/* History Header */}
         <div className="
           border-b
           border-gray-100
@@ -431,7 +485,6 @@ export default function SalesDailyStatus() {
         </div>
 
 
-        {/* History Content */}
         <div className="p-5">
 
           {records.length === 0 ? (
@@ -444,112 +497,257 @@ export default function SalesDailyStatus() {
 
             <div className="space-y-3">
 
-              {records.slice(0, 10).map((r) => (
+              {records.slice(0, 15).map((r) => {
+                const isToday = r.date.slice(0, 10) === today;
+                const isExpanded = expandedId === r._id;
 
-                <div
-                  key={r._id}
-                  className="
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-white
-                    p-4
-                    transition-all
-                    duration-200
-                    hover:border-blue-200
-                    hover:shadow-sm
-                  "
-                >
+                return (
+                  <div
+                    key={r._id}
+                    className={`
+                      rounded-xl
+                      border
+                      bg-white
+                      transition-all
+                      duration-200
+                      ${
+                        isToday
+                          ? 'border-blue-300 bg-blue-50/30'
+                          : 'border-gray-200 hover:border-blue-200 hover:shadow-sm'
+                      }
+                    `}
+                  >
 
-                  <div className="
-                    flex
-                    flex-col
-                    gap-3
-                    sm:flex-row
-                    sm:items-start
-                    sm:justify-between
-                  ">
-
-                    {/* Date */}
-                    <div className="flex items-center gap-3">
-
-                      <div className="
+                    {/* =========================================
+                        HEADER — Clickable
+                    ========================================= */}
+                    <div
+                      onClick={() => toggleExpand(r._id)}
+                      className="
                         flex
-                        h-9
-                        w-9
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-lg
-                        bg-blue-50
-                        text-blue-600
-                      ">
-                        <CalendarDays size={17} />
+                        cursor-pointer
+                        flex-col
+                        gap-3
+                        p-4
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                      "
+                    >
+
+                      <div className="flex items-center gap-3">
+
+                        <div
+                          className={`
+                            flex
+                            h-9
+                            w-9
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-lg
+                            ${
+                              isToday
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-blue-50 text-blue-600'
+                            }
+                          `}
+                        >
+                          <CalendarDays size={17} />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="
+                              text-sm
+                              font-semibold
+                              text-gray-900
+                            ">
+                              {formatDate(r.date)}
+                            </p>
+
+                            {isToday && (
+                              <span className="
+                                rounded-full
+                                bg-blue-600
+                                px-2
+                                py-0.5
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-wide
+                                text-white
+                              ">
+                                Today
+                              </span>
+                            )}
+
+                            <span
+                              className={`
+                                rounded-full
+                                px-2
+                                py-0.5
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-wide
+                                ${
+                                  r.status === 'Reviewed'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-amber-100 text-amber-700'
+                                }
+                              `}
+                            >
+                              {r.status || 'Submitted'}
+                            </span>
+                          </div>
+
+                          <p className="mt-0.5 text-xs text-gray-400">
+                            Click to {isExpanded ? 'collapse' : 'view'} full report
+                          </p>
+                        </div>
+
                       </div>
 
-                      <div>
-                        <p className="
-                          text-sm
-                          font-semibold
-                          text-gray-900
+                      {/* Right Actions */}
+                      <div className="flex items-center gap-2">
+
+                        {/* Edit */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            editReport(r);
+                          }}
+                          className="
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            border-blue-200
+                            bg-blue-50
+                            px-3
+                            py-1.5
+                            text-xs
+                            font-semibold
+                            text-blue-600
+                            transition
+                            hover:border-blue-300
+                            hover:bg-blue-100
+                          "
+                          title="Edit this report"
+                        >
+                          <Pencil size={12} />
+                          Edit
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeReport(r);
+                          }}
+                          className="
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            border-red-200
+                            bg-red-50
+                            px-3
+                            py-1.5
+                            text-xs
+                            font-semibold
+                            text-red-600
+                            transition
+                            hover:border-red-300
+                            hover:bg-red-100
+                          "
+                          title="Delete this report"
+                        >
+                          <Trash2 size={12} />
+                          Delete
+                        </button>
+
+                        {/* Expand Icon */}
+                        <div className="
+                          flex
+                          h-8
+                          w-8
+                          items-center
+                          justify-center
+                          rounded-lg
+                          text-gray-400
                         ">
-                          {formatDate(r.date)}
-                        </p>
+                          {isExpanded ? (
+                            <ChevronUp size={16} />
+                          ) : (
+                            <ChevronDown size={16} />
+                          )}
+                        </div>
 
-                        <p className="mt-0.5 text-xs text-gray-400">
-                          Daily work report
-                        </p>
                       </div>
 
                     </div>
 
-                  </div>
-
-
-                  {/* Completed Work */}
-                  <div className="
-                    mt-4
-                    rounded-lg
-                    border
-                    border-gray-100
-                    bg-gray-50/70
-                    p-3
-                  ">
-
-                    <div className="flex items-center gap-2">
-
-                      <CheckCircle2
-                        size={15}
-                        className="text-green-600"
-                      />
-
-                      <span className="
-                        text-xs
-                        font-semibold
-                        uppercase
-                        tracking-wide
-                        text-gray-500
+                    {/* =========================================
+                        EXPANDED — Full Details
+                    ========================================= */}
+                    {isExpanded && (
+                      <div className="
+                        border-t
+                        border-gray-100
+                        bg-gray-50/50
+                        p-4
                       ">
-                        Completed
-                      </span>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 
-                    </div>
+                          <ReportSection
+                            title="Completed"
+                            text={r.completedWork}
+                            icon={CheckCircle2}
+                            iconClass="bg-green-50 text-green-600"
+                          />
 
-                    <p className="
-                      mt-2
-                      whitespace-pre-wrap
-                      text-sm
-                      leading-6
-                      text-gray-700
-                    ">
-                      {r.completedWork || '—'}
-                    </p>
+                          <ReportSection
+                            title="In Progress"
+                            text={r.workInProgress}
+                            icon={Clock3}
+                            iconClass="bg-blue-50 text-blue-600"
+                          />
+
+                          <ReportSection
+                            title="Pending"
+                            text={r.pendingWork}
+                            icon={ListTodo}
+                            iconClass="bg-amber-50 text-amber-600"
+                          />
+
+                          <ReportSection
+                            title="Blockers"
+                            text={r.blockers}
+                            icon={AlertTriangle}
+                            iconClass="bg-red-50 text-red-600"
+                          />
+
+                          <ReportSection
+                            title="Next Plan"
+                            text={r.nextPlan}
+                            icon={ArrowRight}
+                            iconClass="bg-indigo-50 text-indigo-600"
+                            full
+                          />
+
+                        </div>
+                      </div>
+                    )}
 
                   </div>
-
-                </div>
-
-              ))}
+                );
+              })}
 
             </div>
 
@@ -559,6 +757,69 @@ export default function SalesDailyStatus() {
 
       </Card>
 
+    </div>
+  );
+}
+
+/* =========================================================
+   REPORT SECTION (used in expanded view)
+========================================================= */
+
+function ReportSection({
+  title,
+  text,
+  icon: Icon,
+  iconClass,
+  full = false,
+}) {
+  return (
+    <div
+      className={`
+        rounded-lg
+        border
+        border-gray-200
+        bg-white
+        p-3
+        ${full ? 'md:col-span-2' : ''}
+      `}
+    >
+      <div className="flex items-center gap-2">
+
+        <div
+          className={`
+            flex
+            h-7
+            w-7
+            items-center
+            justify-center
+            rounded-lg
+            ${iconClass}
+          `}
+        >
+          <Icon size={14} />
+        </div>
+
+        <span className="
+          text-xs
+          font-semibold
+          uppercase
+          tracking-wide
+          text-gray-500
+        ">
+          {title}
+        </span>
+
+      </div>
+
+      <p className="
+        mt-2
+        whitespace-pre-wrap
+        text-sm
+        leading-6
+        text-gray-700
+      ">
+        {text || '—'}
+      </p>
     </div>
   );
 }

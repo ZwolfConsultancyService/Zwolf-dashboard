@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 import api from '../../api/axios.js';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -190,12 +191,6 @@ export default function Clients() {
         ...form,
       };
 
-      /*
-       * Edit ke time agar password blank hai,
-       * to backend ko password mat bhejo.
-       *
-       * Isse existing password same rahega.
-       */
       if (
         editing &&
         (!payload.password ||
@@ -255,6 +250,87 @@ export default function Clients() {
     }
   };
 
+  /* =========================================================
+     🆕 EXPORT CLIENTS TO EXCEL
+  ========================================================= */
+
+  const exportToExcel = async () => {
+    try {
+      const params = { page: 1, limit: 10000 };
+
+      if (search) params.search = search;
+      if (status) params.status = status;
+      if (assignedSales && user.role === 'manager') {
+        params.assignedSales = assignedSales;
+      }
+
+      const { data } = await api.get('/clients', { params });
+
+      const allClients = data.data || [];
+
+      if (allClients.length === 0) {
+        toastError('No clients to export');
+        return;
+      }
+
+      const rows = allClients.map((c, idx) => ({
+        'S.No': idx + 1,
+        'Client Name': c.clientName || '—',
+        'Company': c.companyName || '—',
+        'Email': c.email || '—',
+        'Phone': c.phone || '—',
+        'Alternate Phone': c.alternatePhone || '—',
+        'City': c.city || '—',
+        'State': c.state || '—',
+        'Service Required': c.serviceRequired || '—',
+        'Status': c.clientStatus || '—',
+        'Assigned Sales': c.assignedSales?.name || '—',
+        'Total Amount': c.totalAmount || 0,
+        'Total Paid': c.totalPaid || 0,
+        'Remaining': c.remainingAmount || 0,
+        'Follow-up Date': c.followUpDate
+          ? formatDate(c.followUpDate)
+          : '—',
+        'Portal ID': c.portalId || '—',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Clients');
+
+      worksheet['!cols'] = [
+        { wch: 6 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 26 },
+        { wch: 16 },
+        { wch: 16 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 22 },
+        { wch: 16 },
+        { wch: 20 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 18 },
+      ];
+
+      const fileName = `clients-${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+
+      success('Excel exported successfully');
+    } catch (err) {
+      console.error('export err:', err);
+      toastError('Failed to export');
+    }
+  };
+
   return (
     <div className="space-y-4">
 
@@ -264,38 +340,73 @@ export default function Clients() {
           Clients
         </h1>
 
-        <Button
-          onClick={openCreate}
-          className="
-            inline-flex
-            items-center
-            gap-2
-            rounded-xl
-            bg-blue-600
-            px-5
-            py-2.5
-            text-sm
-            font-semibold
-            text-white
-            shadow-[0_4px_12px_rgba(37,99,235,0.25)]
-            transition-all
-            duration-200
-            hover:-translate-y-0.5
-            hover:bg-blue-700
-            hover:shadow-[0_6px_18px_rgba(37,99,235,0.3)]
-            active:translate-y-0
-            focus:outline-none
-            focus:ring-4
-            focus:ring-blue-500/20
-          "
-        >
-          <Plus
-            size={18}
-            strokeWidth={2.5}
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 🆕 EXPORT EXCEL */}
+          <button
+            type="button"
+            onClick={exportToExcel}
+            disabled={loading}
+            className="
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-emerald-200
+              bg-emerald-50
+              px-4
+              py-2.5
+              text-sm
+              font-semibold
+              text-emerald-700
+              transition-all
+              duration-200
+              hover:border-emerald-300
+              hover:bg-emerald-100
+              focus:outline-none
+              focus:ring-2
+              focus:ring-emerald-500/20
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+            <Download size={16} />
+            Export Excel
+          </button>
 
-          Add Client
-        </Button>
+          <Button
+            onClick={openCreate}
+            className="
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              bg-blue-600
+              px-5
+              py-2.5
+              text-sm
+              font-semibold
+              text-white
+              shadow-[0_4px_12px_rgba(37,99,235,0.25)]
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:bg-blue-700
+              hover:shadow-[0_6px_18px_rgba(37,99,235,0.3)]
+              active:translate-y-0
+              focus:outline-none
+              focus:ring-4
+              focus:ring-blue-500/20
+            "
+          >
+            <Plus
+              size={18}
+              strokeWidth={2.5}
+            />
+
+            Add Client
+          </Button>
+        </div>
       </div>
 
       {/* Main Card */}

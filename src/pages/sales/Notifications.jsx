@@ -25,7 +25,7 @@ export default function SalesNotifications() {
     try {
       const { data } = await api.get('/notifications', {
         params: {
-          limit: 50,
+          limit: 20,   // 🆕 Latest 20 only
         },
       });
 
@@ -60,8 +60,6 @@ export default function SalesNotifications() {
             </div>
 
             <div className="min-w-0">
-              
-
               <h1 className="mt-0.5 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
                 Notifications
               </h1>

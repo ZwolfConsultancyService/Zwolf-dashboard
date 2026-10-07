@@ -18,6 +18,7 @@ import {
   Inbox,
   Video,
   MessageSquare,
+  Package,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -29,6 +30,7 @@ const menus = {
       label: 'Dashboard',
       icon: LayoutDashboard,
     },
+    
     {
       to: '/manager/employees',
       label: 'Employees',
@@ -97,6 +99,11 @@ const menus = {
       label: 'SEO Plans',
       icon: ClipboardList,
     },
+     {
+    to: '/manager/products',
+    label: 'Products',
+    icon: Package,
+  },
   ],
 
   sales: [
@@ -125,6 +132,11 @@ const menus = {
       label: 'Payments',
       icon: Wallet,
     },
+      {
+    to: '/sales/products',
+    label: 'Products',
+    icon: Package,
+  },
     {
       to: '/sales/daily-status',
       label: 'Daily Status',
@@ -231,7 +243,11 @@ const menus = {
       icon: Wallet,
     },
 
-    
+     {
+    to: '/client/products',
+    label: 'Products',
+    icon: Package,
+  },
 
     {
       to: '/client/messages',
