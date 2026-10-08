@@ -65,6 +65,8 @@ import ManagerProductDetail from './pages/manager/ProductDetail.jsx';
 import ClientProductDetail from './pages/client/ProductDetail.jsx';
 import SalesProductDetail from './pages/sales/ProductDetail.jsx';
 
+import ManagerHolidays from './pages/manager/Holidays.jsx';
+
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -143,6 +145,7 @@ export default function App() {
             path="products/:id"
             element={<ManagerProductDetail />}
           />
+          <Route path="holidays" element={<ManagerHolidays />} />
 
           <Route
             path="dashboard"

@@ -19,6 +19,7 @@ import {
   Video,
   MessageSquare,
   Package,
+   PartyPopper,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -51,6 +52,11 @@ const menus = {
       label: 'Payments',
       icon: Wallet,
     },
+    {
+  to: '/manager/holidays',
+  label: 'Holidays',
+  icon: PartyPopper,
+},
     {
       to: '/manager/attendance',
       label: 'Attendance',
