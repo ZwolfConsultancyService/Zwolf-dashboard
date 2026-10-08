@@ -59,6 +59,12 @@ import SalesClientRequests from './pages/sales/ClientRequests.jsx';
 import ManagerProducts from './pages/manager/Products.jsx';
 import ClientProducts from './pages/client/Products.jsx';
 import SalesProducts from './pages/sales/Products.jsx';
+
+/* 🆕 PRODUCT DETAIL PAGES */
+import ManagerProductDetail from './pages/manager/ProductDetail.jsx';
+import ClientProductDetail from './pages/client/ProductDetail.jsx';
+import SalesProductDetail from './pages/sales/ProductDetail.jsx';
+
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -131,6 +137,12 @@ export default function App() {
           />
           <Route path="client-requests" element={<ManagerClientRequests />} />
           <Route path="products" element={<ManagerProducts />} />
+
+          {/* 🆕 PRODUCT DETAIL */}
+          <Route
+            path="products/:id"
+            element={<ManagerProductDetail />}
+          />
 
           <Route
             path="dashboard"
@@ -234,7 +246,15 @@ export default function App() {
               />
             }
           />
-<Route path="products" element={<SalesProducts />} />
+
+          <Route path="products" element={<SalesProducts />} />
+
+          {/* 🆕 PRODUCT DETAIL */}
+          <Route
+            path="products/:id"
+            element={<SalesProductDetail />}
+          />
+
           <Route
             path="dashboard"
             element={<SalesDashboard />}
@@ -372,10 +392,6 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          {/* /client */}
-          {/*      ↓ */}
-          {/* /client/dashboard */}
-
           <Route
             index
             element={
@@ -385,7 +401,14 @@ export default function App() {
               />
             }
           />
+
           <Route path="products" element={<ClientProducts />} />
+
+          {/* 🆕 PRODUCT DETAIL */}
+          <Route
+            path="products/:id"
+            element={<ClientProductDetail />}
+          />
 
           {/* Client Dashboard */}
           <Route
@@ -396,7 +419,6 @@ export default function App() {
             path="meetings"
             element={<MyMeetings />}
           />
-          {/* 🆕 YAHAN ADD KARO */}
           <Route
             path="projects"
             element={<MyProjects />}

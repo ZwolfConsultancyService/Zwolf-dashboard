@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -45,7 +46,7 @@ const CATEGORIES = [
 const PRICE_TYPES = ['Fixed', 'Hourly', 'Monthly', 'Custom'];
 
 /* =========================================================
-   🆕 CATEGORY → DEFAULT IMAGE MAP
+   CATEGORY → DEFAULT IMAGE MAP
 ========================================================= */
 
 const CATEGORY_IMAGES = {
@@ -106,6 +107,7 @@ const initialForm = {
 
 export default function ManagerProducts() {
   const { success, error: toastError } = useToast();
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -420,6 +422,7 @@ export default function ManagerProducts() {
                 onEdit={() => openEdit(p)}
                 onToggle={() => toggleStatus(p)}
                 onDelete={() => remove(p)}
+                onView={() => navigate(`/manager/products/${p._id}`)}
               />
             ))}
           </div>
@@ -700,7 +703,7 @@ export default function ManagerProducts() {
               />
             </div>
 
-            {/* 🆕 Preview */}
+            {/* Preview */}
             <div className="mt-3">
               <p className="mb-1.5 text-xs font-semibold text-gray-500">
                 Preview
@@ -775,14 +778,16 @@ export default function ManagerProducts() {
    PRODUCT CARD (Manager)
 ========================================================= */
 
-function ProductCard({ product, onEdit, onToggle, onDelete }) {
-  /* 🆕 Get image — product image OR category default */
+function ProductCard({ product, onEdit, onToggle, onDelete, onView }) {
   const imageUrl = getProductImage(product);
 
   return (
     <div className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
-      {/* Image */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Image — clickable to view detail */}
+      <div
+        onClick={onView}
+        className="relative h-40 cursor-pointer overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50"
+      >
         <img
           src={imageUrl}
           alt={product.name}
@@ -808,7 +813,7 @@ function ProductCard({ product, onEdit, onToggle, onDelete }) {
           </span>
         </div>
 
-        {/* 🆕 Category badge */}
+        {/* Category badge */}
         <div className="absolute left-2 top-2">
           <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-600 shadow-sm backdrop-blur">
             {product.category}
@@ -826,8 +831,11 @@ function ProductCard({ product, onEdit, onToggle, onDelete }) {
           </span>
         </div>
 
-        {/* Name */}
-        <h3 className="mt-1 truncate text-base font-semibold text-gray-900">
+        {/* Name — clickable to view detail */}
+        <h3
+          onClick={onView}
+          className="mt-1 cursor-pointer truncate text-base font-semibold text-gray-900 transition hover:text-blue-600"
+        >
           {product.name}
         </h3>
 

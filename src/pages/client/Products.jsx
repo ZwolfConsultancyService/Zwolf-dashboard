@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Package,
@@ -12,6 +13,10 @@ import {
 import api from '../../api/axios.js';
 import Card from '../../components/ui/Card.jsx';
 import Loader from '../../components/ui/Loader.jsx';
+
+/* =========================================================
+   CATEGORIES
+========================================================= */
 
 const CATEGORIES = [
   'Custom Software',
@@ -29,9 +34,7 @@ const CATEGORIES = [
 ];
 
 /* =========================================================
-   🆕 CATEGORY → DEFAULT IMAGE MAP
-   
-   Use ImageKit CDN / public images
+   CATEGORY → DEFAULT IMAGE MAP
 ========================================================= */
 
 const CATEGORY_IMAGES = {
@@ -61,11 +64,9 @@ const CATEGORY_IMAGES = {
     'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
 };
 
-/* 🆕 Default fallback */
 const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80';
 
-/* 🆕 Helper — get image URL */
 const getProductImage = (product) => {
   if (product.image && product.image.trim()) {
     return product.image;
@@ -73,7 +74,13 @@ const getProductImage = (product) => {
   return CATEGORY_IMAGES[product.category] || DEFAULT_IMAGE;
 };
 
+/* =========================================================
+   CLIENT PRODUCTS PAGE
+========================================================= */
+
 export default function ClientProducts() {
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -170,7 +177,11 @@ export default function ClientProducts() {
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
-            <ProductCard key={p._id} product={p} />
+            <ProductCard
+              key={p._id}
+              product={p}
+              onClick={() => navigate(`/client/products/${p._id}`)}
+            />
           ))}
         </div>
       )}
@@ -182,12 +193,14 @@ export default function ClientProducts() {
    PRODUCT CARD (Client view)
 ========================================================= */
 
-function ProductCard({ product }) {
-  /* 🆕 Get image — product image OR category default */
+function ProductCard({ product, onClick }) {
   const imageUrl = getProductImage(product);
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg">
+    <div
+      onClick={onClick}
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
+    >
       {/* Image */}
       <div className="relative h-44 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <img
@@ -199,7 +212,7 @@ function ProductCard({ product }) {
           }}
         />
 
-        {/* 🆕 Category badge overlay */}
+        {/* Category badge overlay */}
         <div className="absolute left-3 top-3">
           <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-600 shadow-sm backdrop-blur">
             {product.category}
