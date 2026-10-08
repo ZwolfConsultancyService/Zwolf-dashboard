@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Camera,
-  CameraOff,
   RefreshCw,
   CheckCircle2,
   AlertCircle,
@@ -12,11 +11,6 @@ import Button from './ui/Button.jsx';
 
 /* =========================================================
    FACE CAMERA COMPONENT
-   
-   Props:
-   - onCapture: (blob, previewUrl) => void  (called on capture)
-   - onCancel: () => void  (optional)
-   - autoCapture: boolean (default false) — auto capture on face detect
 ========================================================= */
 
 export default function FaceCamera({
@@ -28,6 +22,7 @@ export default function FaceCamera({
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const mountedRef = useRef(true);
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState('');
@@ -46,6 +41,7 @@ export default function FaceCamera({
       /* Stop existing stream */
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -57,15 +53,42 @@ export default function FaceCamera({
         audio: false,
       });
 
+      /* If component unmounted, stop stream */
+      if (!mountedRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
       streamRef.current = stream;
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setIsReady(true);
+        const video = videoRef.current;
+
+        /* Clear old srcObject first */
+        try {
+          video.pause();
+        } catch {}
+
+        video.srcObject = stream;
+
+        /* Safely play — ignore AbortError */
+        try {
+          await video.play();
+        } catch (playErr) {
+          if (playErr.name !== 'AbortError') {
+            console.warn('Video play warning:', playErr);
+          }
+        }
+
+        if (mountedRef.current) {
+          setIsReady(true);
+        }
       }
     } catch (err) {
       console.error('camera error:', err);
+
+      if (!mountedRef.current) return;
+
       setError(
         err.name === 'NotAllowedError'
           ? 'Camera permission denied. Please allow camera access.'
@@ -84,9 +107,15 @@ export default function FaceCamera({
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+
     if (videoRef.current) {
+      try {
+        videoRef.current.pause();
+      } catch {}
+
       videoRef.current.srcObject = null;
     }
+
     setIsReady(false);
   };
 
@@ -130,7 +159,9 @@ export default function FaceCamera({
     try {
       await onCapture?.(captured.blob, captured.previewUrl);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -151,10 +182,23 @@ export default function FaceCamera({
   ========================================================= */
 
   useEffect(() => {
+    mountedRef.current = true;
     startCamera();
 
     return () => {
-      stopCamera();
+      mountedRef.current = false;
+
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+        } catch {}
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+
       if (captured?.previewUrl) {
         URL.revokeObjectURL(captured.previewUrl);
       }

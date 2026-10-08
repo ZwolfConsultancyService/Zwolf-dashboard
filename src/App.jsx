@@ -67,6 +67,9 @@ import SalesProductDetail from './pages/sales/ProductDetail.jsx';
 
 import ManagerHolidays from './pages/manager/Holidays.jsx';
 
+import KioskAttendance from './pages/kiosk/KioskAttendance.jsx';
+
+
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -443,6 +446,8 @@ export default function App() {
         {/* =========================
             FALLBACK
         ========================== */}
+
+        <Route path="/kiosk/attendance" element={<KioskAttendance />} />
         <Route
           path="*"
           element={
