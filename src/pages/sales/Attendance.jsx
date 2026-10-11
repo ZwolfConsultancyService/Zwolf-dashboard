@@ -12,6 +12,7 @@ import {
   ChevronRight,
   AlertCircle,
   Sparkles,
+  XCircle,
 } from 'lucide-react';
 
 import api from '../../api/axios.js';
@@ -56,6 +57,14 @@ const isSameDay = (d1, d2) => {
   );
 };
 
+const dateKey = (d) => {
+  const x = new Date(d);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(
+    2,
+    '0'
+  )}-${String(x.getDate()).padStart(2, '0')}`;
+};
+
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
@@ -69,16 +78,18 @@ export default function SalesAttendance() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  /* 🆕 Calendar state */
+  /* Calendar state */
   const now = new Date();
   const [calMonth, setCalMonth] = useState(now.getMonth());
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [holidays, setHolidays] = useState([]);
   const [upcomingHolidays, setUpcomingHolidays] = useState([]);
   const [todayHoliday, setTodayHoliday] = useState(null);
+  const [monthAttendance, setMonthAttendance] = useState([]);
+  const [monthLeaves, setMonthLeaves] = useState([]);
 
   /* =========================================================
-     LOAD ATTENDANCE
+     LOAD ATTENDANCE (table)
   ========================================================= */
 
   const load = useCallback(async () => {
@@ -101,13 +112,12 @@ export default function SalesAttendance() {
   }, [load]);
 
   /* =========================================================
-     🆕 LOAD HOLIDAYS
+     LOAD HOLIDAYS
   ========================================================= */
 
   useEffect(() => {
     const loadHolidays = async () => {
       try {
-        /* Current month holidays */
         const { data } = await api.get(
           `/holidays?year=${calYear}&month=${calMonth + 1}&limit=100`
         );
@@ -121,7 +131,119 @@ export default function SalesAttendance() {
     loadHolidays();
   }, [calMonth, calYear]);
 
-  /* Upcoming + Today */
+  /* =========================================================
+     LOAD MONTH ATTENDANCE
+  ========================================================= */
+
+  useEffect(() => {
+    const loadMonthAttendance = async () => {
+      try {
+        const start = new Date(calYear, calMonth, 1);
+        const end = new Date(calYear, calMonth + 1, 0, 23, 59, 59);
+
+        const { data } = await api.get('/attendance/my', {
+          params: {
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+            limit: 100,
+          },
+        });
+
+        setMonthAttendance(data.data || []);
+      } catch (err) {
+        console.error('month attendance err:', err);
+      }
+    };
+
+    loadMonthAttendance();
+  }, [calMonth, calYear]);
+
+  /* =========================================================
+     LOAD MONTH LEAVES
+  ========================================================= */
+
+  useEffect(() => {
+    const loadMonthLeaves = async () => {
+      try {
+        const { data } = await api.get('/leaves/my', {
+          params: { limit: 100, status: 'Approved' },
+        });
+
+        const all = data.data || [];
+
+        const start = new Date(calYear, calMonth, 1);
+        const end = new Date(calYear, calMonth + 1, 0, 23, 59, 59);
+
+        const filtered = all.filter((l) => {
+          const lFrom = new Date(l.fromDate);
+          const lTo = new Date(l.toDate);
+          return lFrom <= end && lTo >= start;
+        });
+
+        setMonthLeaves(filtered);
+      } catch (err) {
+        console.error('month leaves err:', err);
+      }
+    };
+
+    loadMonthLeaves();
+  }, [calMonth, calYear]);
+
+  /* =========================================================
+     🆕 AUTO-REFRESH — 30 sec + window focus
+  ========================================================= */
+
+  useEffect(() => {
+    const refresh = () => {
+      load();
+      /* Attendance + Leaves bhi reload */
+      const start = new Date(calYear, calMonth, 1);
+      const end = new Date(calYear, calMonth + 1, 0, 23, 59, 59);
+
+      api
+        .get('/attendance/my', {
+          params: {
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+            limit: 100,
+          },
+        })
+        .then(({ data }) => setMonthAttendance(data.data || []))
+        .catch(() => {});
+
+      api
+        .get('/leaves/my', {
+          params: { limit: 100, status: 'Approved' },
+        })
+        .then(({ data }) => {
+          const all = data.data || [];
+          const filtered = all.filter((l) => {
+            const lFrom = new Date(l.fromDate);
+            const lTo = new Date(l.toDate);
+            return lFrom <= end && lTo >= start;
+          });
+          setMonthLeaves(filtered);
+        })
+        .catch(() => {});
+    };
+
+    /* 30 sec interval */
+    const interval = setInterval(refresh, 30000);
+
+    /* Window focus pe turant refresh */
+    window.addEventListener('focus', refresh);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calMonth, calYear]);
+
+  /* =========================================================
+     UPCOMING + TODAY HOLIDAY
+  ========================================================= */
+
   useEffect(() => {
     const loadUpcoming = async () => {
       try {
@@ -133,7 +255,6 @@ export default function SalesAttendance() {
 
         setUpcomingHolidays(list.slice(0, 5));
 
-        /* Today holiday? */
         const today = new Date();
         const found = list.find((h) => isSameDay(h.date, today));
 
@@ -180,29 +301,72 @@ export default function SalesAttendance() {
       : '—';
 
   /* =========================================================
+     ATTENDANCE MAP
+  ========================================================= */
+
+  const attendanceMap = {};
+  monthAttendance.forEach((r) => {
+    attendanceMap[dateKey(r.date)] = r;
+  });
+
+  /* =========================================================
+     LEAVE MAP
+  ========================================================= */
+
+  const leaveMap = {};
+  monthLeaves.forEach((leave) => {
+    const from = new Date(leave.fromDate);
+    const to = new Date(leave.toDate);
+
+    const current = new Date(from);
+    while (current <= to) {
+      leaveMap[dateKey(current)] = leave;
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  /* =========================================================
      CALENDAR BUILD
   ========================================================= */
 
   const buildCalendar = () => {
     const firstDay = new Date(calYear, calMonth, 1);
-    const startDay = firstDay.getDay(); // 0=Sun
+    const startDay = firstDay.getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
     const days = [];
 
-    /* Empty days before first */
     for (let i = 0; i < startDay; i++) {
       days.push({ empty: true, key: `e-${i}` });
     }
 
-    /* Days of month */
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(calYear, calMonth, d);
       const dayOfWeek = date.getDay();
+      const key = dateKey(date);
 
-      const holiday = holidays.find((h) =>
-        isSameDay(h.date, date)
-      );
+      const holiday = holidays.find((h) => isSameDay(h.date, date));
+      const attendance = attendanceMap[key];
+      const leave = leaveMap[key];
+
+      /* Priority:
+         1. Holiday
+         2. Attendance
+         3. Leave
+         4. Weekend
+      */
+
+      let status = null;
+
+      if (holiday) {
+        status = 'Holiday';
+      } else if (attendance?.status) {
+        status = attendance.status;
+      } else if (leave) {
+        status = 'Leave';
+      } else if (dayOfWeek === 0) {
+        status = 'Weekend';
+      }
 
       days.push({
         key: `d-${d}`,
@@ -212,6 +376,9 @@ export default function SalesAttendance() {
         isSunday: dayOfWeek === 0,
         isHoliday: !!holiday,
         holiday,
+        attendance,
+        leave,
+        status,
       });
     }
 
@@ -236,6 +403,64 @@ export default function SalesAttendance() {
     } else {
       setCalMonth((m) => m + 1);
     }
+  };
+
+  /* =========================================================
+     🆕 STATUS → COLOR (NEW COLORS)
+  ========================================================= */
+
+  const getDayClasses = (d) => {
+    let classes =
+      'relative flex aspect-square flex-col items-center justify-center rounded-lg text-sm transition cursor-default';
+
+    const s = d.status;
+
+    if (s === 'Absent') {
+      /* 🔴 RED */
+      classes +=
+        ' bg-red-100 text-red-700 font-bold border border-red-300';
+    } else if (s === 'Present') {
+      /* 🟢 GREEN */
+      classes +=
+        ' bg-green-100 text-green-700 font-medium border border-green-300';
+    } else if (s === 'Half Day') {
+      /* 🟡 YELLOW */
+      classes +=
+        ' bg-yellow-100 text-yellow-800 font-medium border border-yellow-300';
+    } else if (s === 'Leave') {
+      /* 🟠 ORANGE */
+      classes +=
+        ' bg-orange-100 text-orange-700 font-bold border border-orange-300';
+    } else if (s === 'Holiday') {
+      /* 🟨 AMBER */
+      classes +=
+        ' bg-amber-100 text-amber-700 font-bold border border-amber-300';
+    } else if (s === 'Weekend') {
+      /* ⚪ GRAY */
+      classes +=
+        ' bg-gray-100 text-gray-500 border border-gray-200';
+    } else {
+      classes += ' bg-white text-gray-700 border border-gray-100';
+    }
+
+    if (d.isToday) {
+      classes += ' ring-2 ring-blue-500 ring-offset-1';
+    }
+
+    return classes;
+  };
+
+  /* =========================================================
+     STATUS → ICON
+  ========================================================= */
+
+  const getStatusIcon = (s) => {
+    if (s === 'Present') return '✅';
+    if (s === 'Absent') return '❌';
+    if (s === 'Half Day') return '⏰';
+    if (s === 'Holiday') return '🎉';
+    if (s === 'Leave') return '🏖️';
+    return null;
   };
 
   /* =========================================================
@@ -273,7 +498,7 @@ export default function SalesAttendance() {
         </div>
       </div>
 
-      {/* 🆕 TODAY HOLIDAY ALERT */}
+      {/* TODAY HOLIDAY ALERT */}
       {todayHoliday && (
         <div className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm">
           <div className="flex items-start gap-4">
@@ -311,7 +536,7 @@ export default function SalesAttendance() {
         </div>
       )}
 
-      {/* 🆕 CALENDAR + UPCOMING HOLIDAYS */}
+      {/* CALENDAR + UPCOMING HOLIDAYS */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* CALENDAR */}
         <Card className="overflow-hidden lg:col-span-2">
@@ -366,31 +591,19 @@ export default function SalesAttendance() {
                   return <div key={d.key} className="aspect-square" />;
                 }
 
-                let classes =
-                  'relative flex aspect-square flex-col items-center justify-center rounded-lg text-sm transition';
-
-                if (d.isHoliday) {
-                  classes +=
-                    ' bg-amber-100 text-amber-800 font-bold border border-amber-300';
-                } else if (d.isSunday) {
-                  classes +=
-                    ' bg-red-50 text-red-600 font-medium border border-red-100';
-                } else {
-                  classes +=
-                    ' bg-white text-gray-700 border border-gray-100';
-                }
-
-                if (d.isToday) {
-                  classes += ' ring-2 ring-blue-500 ring-offset-1';
-                }
+                const icon = getStatusIcon(d.status);
 
                 return (
                   <div
                     key={d.key}
-                    className={classes}
+                    className={getDayClasses(d)}
                     title={
                       d.holiday
                         ? `${d.holiday.name} (${d.holiday.type})`
+                        : d.leave
+                        ? `Leave (${d.leave.type})`
+                        : d.status
+                        ? `Status: ${d.status}`
                         : d.isSunday
                         ? 'Sunday'
                         : ''
@@ -398,9 +611,9 @@ export default function SalesAttendance() {
                   >
                     <span className="text-xs">{d.day}</span>
 
-                    {d.isHoliday && (
+                    {icon && (
                       <span className="absolute -bottom-0.5 text-[8px]">
-                        🎉
+                        {icon}
                       </span>
                     )}
                   </div>
@@ -408,15 +621,31 @@ export default function SalesAttendance() {
               })}
             </div>
 
-            {/* Legend */}
-            <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4 text-xs text-gray-500">
+            {/* 🆕 Legend — Updated Colors */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-4 text-[11px] text-gray-500">
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded bg-green-100 border border-green-300" />
+                <span>Present</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded bg-red-100 border border-red-300" />
+                <span>Absent</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded bg-yellow-100 border border-yellow-300" />
+                <span>Half Day</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded bg-orange-100 border border-orange-300" />
+                <span>Leave</span>
+              </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded bg-amber-100 border border-amber-300" />
                 <span>Holiday</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded bg-red-50 border border-red-100" />
-                <span>Sunday</span>
+                <div className="h-3 w-3 rounded bg-gray-100 border border-gray-200" />
+                <span>Weekend</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded ring-2 ring-blue-500 ring-offset-1" />
@@ -504,7 +733,6 @@ export default function SalesAttendance() {
         </div>
 
         <div className="p-5">
-          {/* If today holiday, show alert instead of buttons */}
           {todayHoliday ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-3">

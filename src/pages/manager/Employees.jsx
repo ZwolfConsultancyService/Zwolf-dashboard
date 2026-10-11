@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -23,6 +24,8 @@ import FaceEnrollModal from '../../components/FaceEnrollModal.jsx';
 
 export default function ManagerEmployees() {
   const { success, error: toastError } = useToast();
+  const navigate = useNavigate();
+
   const [employees, setEmployees] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -163,7 +166,21 @@ export default function ManagerEmployees() {
           loading={loading}
           data={employees}
           columns={[
-            { header: 'Name', render: (r) => <div><p className="font-medium">{r.name}</p><p className="text-xs text-gray-500">{r.email}</p></div> },
+            {
+              header: 'Name',
+              render: (r) => (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/manager/employees/${r._id}`)}
+                  className="text-left"
+                >
+                  <p className="font-medium text-blue-600 hover:underline">
+                    {r.name}
+                  </p>
+                  <p className="text-xs text-gray-500">{r.email}</p>
+                </button>
+              ),
+            },
             { header: 'Role', render: (r) => <Badge color={statusColor(r.role)}>{r.role}</Badge> },
             { header: 'Department', key: 'department' },
             { header: 'Status', render: (r) => <Badge color={r.isActive ? 'green' : 'red'}>{r.isActive ? 'Active' : 'Disabled'}</Badge> },

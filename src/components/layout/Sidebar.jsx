@@ -19,7 +19,11 @@ import {
   Video,
   MessageSquare,
   Package,
+  Settings,
    PartyPopper,
+   Calendar,
+   IndianRupee ,
+   
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -43,10 +47,20 @@ const menus = {
       icon: UserCircle,
     },
     {
+  to: '/manager/proposals',
+  label: 'Proposals',
+  icon: FileText,
+},
+    {
       to: '/manager/projects',
       label: 'Projects',
       icon: FolderKanban,
     },
+    {
+  to: '/manager/resignations',
+  label: 'Resignations',
+  icon: FileText,
+},
     {
       to: '/manager/payments',
       label: 'Payments',
@@ -62,6 +76,16 @@ const menus = {
       label: 'Attendance',
       icon: CalendarCheck,
     },
+    {
+  to: '/manager/attendance-settings',
+  label: 'Attendance Settings',
+  icon: Settings,
+},
+{
+  to: '/manager/leaves',
+  label: 'Leave Requests',
+  icon: Calendar,
+},
     {
       to: '/manager/daily-status',
       label: 'Daily Status',
@@ -129,15 +153,30 @@ const menus = {
       icon: FolderKanban,
     },
     {
+  to: '/sales/resignation',
+  label: 'Resignation',
+  icon: FileText,
+},
+    {
       to : '/sales/client-requests',
       label: 'Client Requests',
       icon: Inbox,
     },
     {
+  to: '/sales/leaves',
+  label: 'Leaves',
+  icon: Calendar,
+},
+    {
       to: '/sales/payments',
       label: 'Payments',
       icon: Wallet,
     },
+    {
+  to: '/sales/salary',
+  label: 'My Salary',
+  icon: IndianRupee,
+},
       {
     to: '/sales/products',
     label: 'Products',
@@ -185,6 +224,21 @@ const menus = {
     label: 'My Tasks',
     icon: CheckSquare,
   },
+  {
+  to: '/developer/resignation',
+  label: 'Resignation',
+  icon: FileText,
+},
+  {
+  to: '/developer/leaves',
+  label: 'Leaves',
+  icon: Calendar,
+},
+{
+  to: '/developer/salary',
+  label: 'My Salary',
+  icon: IndianRupee,
+},
 
   {
     to: '/developer/daily-status',
@@ -241,7 +295,11 @@ const menus = {
     label: 'My Meetings',
     icon: Video,
   },
-
+{
+  to: '/client/proposals',
+  label: 'Proposals',
+  icon: FileText,
+},
 
     {
       to: '/client/payments',

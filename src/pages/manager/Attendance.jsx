@@ -9,6 +9,7 @@ import {
   Timer,
   Trash2,
   Download,
+  UserX,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -35,6 +36,7 @@ export default function ManagerAttendance() {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [markingAbsent, setMarkingAbsent] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,7 +69,41 @@ export default function ManagerAttendance() {
       : '—';
 
   /* =========================================================
-     🆕 DELETE SINGLE RECORD
+     🆕 MARK ABSENT (manual trigger)
+  ========================================================= */
+
+  const markAbsent = async () => {
+    const confirmMsg = date
+      ? `Mark employees absent for ${date}?\n\nOnly those who did NOT check-in will be marked absent.`
+      : `Mark employees absent for TODAY?\n\nOnly those who did NOT check-in will be marked absent.`;
+
+    if (!confirm(confirmMsg)) return;
+
+    setMarkingAbsent(true);
+
+    try {
+      const body = {};
+      if (date) body.date = date;
+
+      const { data } = await api.post(
+        '/attendance/mark-absent',
+        body
+      );
+
+      success(data.message || 'Absent marked successfully');
+      load();
+    } catch (err) {
+      toastError(
+        err.response?.data?.message ||
+          'Failed to mark absent'
+      );
+    } finally {
+      setMarkingAbsent(false);
+    }
+  };
+
+  /* =========================================================
+     DELETE SINGLE
   ========================================================= */
 
   const removeRecord = async (record) => {
@@ -87,14 +123,13 @@ export default function ManagerAttendance() {
       load();
     } catch (err) {
       toastError(
-        err.response?.data?.message ||
-          'Failed to delete record'
+        err.response?.data?.message || 'Failed to delete record'
       );
     }
   };
 
   /* =========================================================
-     🆕 DELETE ALL (filtered)
+     DELETE ALL
   ========================================================= */
 
   const removeAll = async () => {
@@ -113,11 +148,8 @@ export default function ManagerAttendance() {
       return;
     }
 
-    /* Double confirm */
     if (
-      !confirm(
-        'Are you absolutely sure? This cannot be undone.'
-      )
+      !confirm('Are you absolutely sure? This cannot be undone.')
     ) {
       return;
     }
@@ -136,8 +168,7 @@ export default function ManagerAttendance() {
       load();
     } catch (err) {
       toastError(
-        err.response?.data?.message ||
-          'Failed to delete records'
+        err.response?.data?.message || 'Failed to delete records'
       );
     } finally {
       setDeleting(false);
@@ -145,14 +176,13 @@ export default function ManagerAttendance() {
   };
 
   /* =========================================================
-     🆕 EXPORT TO EXCEL
+     EXPORT TO EXCEL
   ========================================================= */
 
   const exportToExcel = async () => {
     try {
       setExporting(true);
 
-      /* Fetch all records matching filters (not just current page) */
       const params = { page: 1, limit: 1000 };
       if (status) params.status = status;
       if (date) params.date = date;
@@ -166,7 +196,6 @@ export default function ManagerAttendance() {
         return;
       }
 
-      /* Build Excel rows */
       const rows = allRecords.map((r, idx) => ({
         'S.No': idx + 1,
         Employee: r.employee?.name || '—',
@@ -178,13 +207,11 @@ export default function ManagerAttendance() {
         Status: r.status || '—',
       }));
 
-      /* Create worksheet + workbook */
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
 
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
 
-      /* Set column widths */
       worksheet['!cols'] = [
         { wch: 6 },
         { wch: 22 },
@@ -196,7 +223,6 @@ export default function ManagerAttendance() {
         { wch: 12 },
       ];
 
-      /* File name with date filter */
       const fileName = date
         ? `attendance-${date}.xlsx`
         : `attendance-${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -238,6 +264,9 @@ export default function ManagerAttendance() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* 🆕 MARK ABSENT Button */}
+        
+
             {/* Export Button */}
             <button
               type="button"
@@ -375,6 +404,8 @@ export default function ManagerAttendance() {
                 <option>Absent</option>
                 <option>Half Day</option>
                 <option>Leave</option>
+                <option>Holiday</option>
+                <option>Weekend</option>
               </Select>
             </div>
           </div>
@@ -488,7 +519,6 @@ export default function ManagerAttendance() {
                 ),
               },
 
-              /* 🆕 DELETE ACTION */
               {
                 header: 'Actions',
                 className: 'text-right',

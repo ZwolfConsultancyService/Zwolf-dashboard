@@ -19,6 +19,8 @@ import ManagerMessages from './pages/manager/Messages.jsx';
 import ManagerActivityLogs from './pages/manager/ActivityLogs.jsx';
 import ManagerGuides from './pages/manager/Guides.jsx';
 import ManagerDetails from './pages/manager/Details.jsx';
+import ManagerAttendanceSettings from './pages/manager/AttendanceSettings.jsx';
+import ManagerEmployeeDetail from './pages/manager/EmployeeDetail.jsx';
 
 import SalesDashboard from './pages/sales/Dashboard.jsx';
 import SalesClients from './pages/sales/Clients.jsx';
@@ -69,6 +71,21 @@ import ManagerHolidays from './pages/manager/Holidays.jsx';
 
 import KioskAttendance from './pages/kiosk/KioskAttendance.jsx';
 
+import SalesLeaves from './pages/sales/Leaves.jsx';
+import DeveloperLeaves from './pages/developer/Leaves.jsx';
+import ManagerLeaves from './pages/manager/Leaves.jsx';
+
+import SalesSalary from './pages/sales/Salary.jsx';
+import DeveloperSalary from './pages/developer/Salary.jsx';
+
+import SalesResignation from './pages/sales/Resignation.jsx';
+import DeveloperResignation from './pages/developer/Resignation.jsx';
+import ManagerResignations from './pages/manager/Resignations.jsx';
+
+import ManagerProposals from './pages/manager/Proposals.jsx';
+import ProposalForm from './pages/manager/ProposalForm.jsx';
+import ClientProposals from './pages/client/Proposals.jsx';
+import ClientProposalDetail from './pages/client/ProposalDetail.jsx';
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -142,7 +159,17 @@ export default function App() {
           />
           <Route path="client-requests" element={<ManagerClientRequests />} />
           <Route path="products" element={<ManagerProducts />} />
-
+          <Route path="attendance-settings" element={<ManagerAttendanceSettings />} />
+<Route path="leaves" element={<ManagerLeaves />} />
+<Route
+  path="employees/:id"
+  element={<ManagerEmployeeDetail />}
+/>
+<Route path="resignations" element={<ManagerResignations />} />
+<Route path="proposals" element={<ManagerProposals />} />
+<Route path="proposals/new" element={<ProposalForm />} />
+<Route path="proposals/:id/edit" element={<ProposalForm />} />
+<Route path="proposals/:id" element={<ProposalForm />} />
           {/* 🆕 PRODUCT DETAIL */}
           <Route
             path="products/:id"
@@ -254,7 +281,9 @@ export default function App() {
           />
 
           <Route path="products" element={<SalesProducts />} />
-
+<Route path="leaves" element={<SalesLeaves />} />
+<Route path="salary" element={<SalesSalary />} />
+<Route path="resignation" element={<SalesResignation />} />
           {/* 🆕 PRODUCT DETAIL */}
           <Route
             path="products/:id"
@@ -340,7 +369,9 @@ export default function App() {
             path="dashboard"
             element={<DeveloperDashboard />}
           />
-
+<Route path="leaves" element={<DeveloperLeaves />} />
+<Route path="salary" element={<DeveloperSalary />} />
+<Route path="resignation" element={<DeveloperResignation />} />
           <Route
             path="projects"
             element={<DeveloperProjects />}
@@ -415,6 +446,8 @@ export default function App() {
             path="products/:id"
             element={<ClientProductDetail />}
           />
+          <Route path="proposals" element={<ClientProposals />} />
+<Route path="proposals/:id" element={<ClientProposalDetail />} />
 
           {/* Client Dashboard */}
           <Route
