@@ -121,7 +121,7 @@ const menus = {
     },
     {
       to: '/manager/seo',
-      label: 'SEO',
+      label: 'My Work',
       icon: Search,
     },
     {

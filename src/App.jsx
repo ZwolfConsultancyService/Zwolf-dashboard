@@ -160,16 +160,16 @@ export default function App() {
           <Route path="client-requests" element={<ManagerClientRequests />} />
           <Route path="products" element={<ManagerProducts />} />
           <Route path="attendance-settings" element={<ManagerAttendanceSettings />} />
-<Route path="leaves" element={<ManagerLeaves />} />
-<Route
-  path="employees/:id"
-  element={<ManagerEmployeeDetail />}
-/>
-<Route path="resignations" element={<ManagerResignations />} />
-<Route path="proposals" element={<ManagerProposals />} />
-<Route path="proposals/new" element={<ProposalForm />} />
-<Route path="proposals/:id/edit" element={<ProposalForm />} />
-<Route path="proposals/:id" element={<ProposalForm />} />
+          <Route path="leaves" element={<ManagerLeaves />} />
+          <Route
+            path="employees/:id"
+            element={<ManagerEmployeeDetail />}
+          />
+          <Route path="resignations" element={<ManagerResignations />} />
+          <Route path="proposals" element={<ManagerProposals />} />
+          <Route path="proposals/new" element={<ProposalForm />} />
+          <Route path="proposals/:id/edit" element={<ProposalForm />} />
+          <Route path="proposals/:id" element={<ProposalForm />} />
           {/* 🆕 PRODUCT DETAIL */}
           <Route
             path="products/:id"
@@ -281,9 +281,9 @@ export default function App() {
           />
 
           <Route path="products" element={<SalesProducts />} />
-<Route path="leaves" element={<SalesLeaves />} />
-<Route path="salary" element={<SalesSalary />} />
-<Route path="resignation" element={<SalesResignation />} />
+          <Route path="leaves" element={<SalesLeaves />} />
+          <Route path="salary" element={<SalesSalary />} />
+          <Route path="resignation" element={<SalesResignation />} />
           {/* 🆕 PRODUCT DETAIL */}
           <Route
             path="products/:id"
@@ -369,9 +369,9 @@ export default function App() {
             path="dashboard"
             element={<DeveloperDashboard />}
           />
-<Route path="leaves" element={<DeveloperLeaves />} />
-<Route path="salary" element={<DeveloperSalary />} />
-<Route path="resignation" element={<DeveloperResignation />} />
+          <Route path="leaves" element={<DeveloperLeaves />} />
+          <Route path="salary" element={<DeveloperSalary />} />
+          <Route path="resignation" element={<DeveloperResignation />} />
           <Route
             path="projects"
             element={<DeveloperProjects />}
@@ -447,7 +447,7 @@ export default function App() {
             element={<ClientProductDetail />}
           />
           <Route path="proposals" element={<ClientProposals />} />
-<Route path="proposals/:id" element={<ClientProposalDetail />} />
+          <Route path="proposals/:id" element={<ClientProposalDetail />} />
 
           {/* Client Dashboard */}
           <Route
