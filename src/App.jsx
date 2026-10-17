@@ -87,6 +87,9 @@ import ProposalForm from './pages/manager/ProposalForm.jsx';
 import ClientProposals from './pages/client/Proposals.jsx';
 import ClientProposalDetail from './pages/client/ProposalDetail.jsx';
 
+import ManagerMeetings from './pages/manager/ManagerMeetings.jsx';
+import SalesMeetings from './pages/sales/SalesMeetings.jsx';
+
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -165,6 +168,7 @@ export default function App() {
             path="employees/:id"
             element={<ManagerEmployeeDetail />}
           />
+          <Route path="meetings" element={<ManagerMeetings />} />
           <Route path="resignations" element={<ManagerResignations />} />
           <Route path="proposals" element={<ManagerProposals />} />
           <Route path="proposals/new" element={<ProposalForm />} />
@@ -294,6 +298,7 @@ export default function App() {
             path="dashboard"
             element={<SalesDashboard />}
           />
+          <Route path="meetings" element={<SalesMeetings />} />
 
           <Route
             path="clients"

@@ -20,10 +20,11 @@ import {
   MessageSquare,
   Package,
   Settings,
-   PartyPopper,
-   Calendar,
-   IndianRupee ,
-   
+  PartyPopper,
+  Calendar,
+  IndianRupee,
+  CalendarIcon
+
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -35,7 +36,7 @@ const menus = {
       label: 'Dashboard',
       icon: LayoutDashboard,
     },
-    
+
     {
       to: '/manager/employees',
       label: 'Employees',
@@ -47,45 +48,51 @@ const menus = {
       icon: UserCircle,
     },
     {
-  to: '/manager/proposals',
-  label: 'Proposals',
-  icon: FileText,
-},
+      to: '/manager/proposals',
+      label: 'Proposals',
+      icon: FileText,
+    },
     {
       to: '/manager/projects',
       label: 'Projects',
       icon: FolderKanban,
     },
     {
-  to: '/manager/resignations',
-  label: 'Resignations',
-  icon: FileText,
-},
+      to: '/manager/resignations',
+      label: 'Resignations',
+      icon: FileText,
+    },
     {
       to: '/manager/payments',
       label: 'Payments',
       icon: Wallet,
     },
     {
-  to: '/manager/holidays',
-  label: 'Holidays',
-  icon: PartyPopper,
-},
+      to: '/manager/holidays',
+      label: 'Holidays',
+      icon: PartyPopper,
+    },
     {
       to: '/manager/attendance',
       label: 'Attendance',
       icon: CalendarCheck,
     },
-    {
-  to: '/manager/attendance-settings',
-  label: 'Attendance Settings',
-  icon: Settings,
-},
+    // ✅ naya
 {
-  to: '/manager/leaves',
-  label: 'Leave Requests',
-  icon: Calendar,
+  to: '/manager/meetings',
+  label: 'Schedule Meeting',
+  icon: CalendarIcon,
 },
+    {
+      to: '/manager/attendance-settings',
+      label: 'Attendance Settings',
+      icon: Settings,
+    },
+    {
+      to: '/manager/leaves',
+      label: 'Leave Requests',
+      icon: Calendar,
+    },
     {
       to: '/manager/daily-status',
       label: 'Daily Status',
@@ -97,10 +104,10 @@ const menus = {
       icon: Bell,
     },
     {
-  to: '/manager/client-requests',
-  label: 'Client Requests',
-  icon: Inbox,  // naya icon
-},
+      to: '/manager/client-requests',
+      label: 'Client Requests',
+      icon: Inbox,  // naya icon
+    },
 
     // Messages
     {
@@ -129,11 +136,11 @@ const menus = {
       label: 'SEO Plans',
       icon: ClipboardList,
     },
-     {
-    to: '/manager/products',
-    label: 'Products',
-    icon: Package,
-  },
+    {
+      to: '/manager/products',
+      label: 'Products',
+      icon: Package,
+    },
   ],
 
   sales: [
@@ -153,35 +160,40 @@ const menus = {
       icon: FolderKanban,
     },
     {
-  to: '/sales/resignation',
-  label: 'Resignation',
-  icon: FileText,
-},
+      to: '/sales/resignation',
+      label: 'Resignation',
+      icon: FileText,
+    },
     {
-      to : '/sales/client-requests',
+      to: '/sales/client-requests',
       label: 'Client Requests',
       icon: Inbox,
     },
-    {
-  to: '/sales/leaves',
-  label: 'Leaves',
-  icon: Calendar,
+{
+  to: '/sales/meetings',
+  label: 'Schedule Meeting',
+  icon: CalendarIcon,
 },
+    {
+      to: '/sales/leaves',
+      label: 'Leaves',
+      icon: Calendar,
+    },
     {
       to: '/sales/payments',
       label: 'Payments',
       icon: Wallet,
     },
     {
-  to: '/sales/salary',
-  label: 'My Salary',
-  icon: IndianRupee,
-},
-      {
-    to: '/sales/products',
-    label: 'Products',
-    icon: Package,
-  },
+      to: '/sales/salary',
+      label: 'My Salary',
+      icon: IndianRupee,
+    },
+    {
+      to: '/sales/products',
+      label: 'Products',
+      icon: Package,
+    },
     {
       to: '/sales/daily-status',
       label: 'Daily Status',
@@ -206,76 +218,76 @@ const menus = {
     },
   ],
 
- developer: [
-  {
-    to: '/developer/dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-  },
+  developer: [
+    {
+      to: '/developer/dashboard',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+    },
 
-  {
-    to: '/developer/projects',
-    label: 'My Projects',
-    icon: FolderKanban,
-  },
+    {
+      to: '/developer/projects',
+      label: 'My Projects',
+      icon: FolderKanban,
+    },
 
-  {
-    to: '/developer/tasks',
-    label: 'My Tasks',
-    icon: CheckSquare,
-  },
-  {
-  to: '/developer/resignation',
-  label: 'Resignation',
-  icon: FileText,
-},
-  {
-  to: '/developer/leaves',
-  label: 'Leaves',
-  icon: Calendar,
-},
-{
-  to: '/developer/salary',
-  label: 'My Salary',
-  icon: IndianRupee,
-},
+    {
+      to: '/developer/tasks',
+      label: 'My Tasks',
+      icon: CheckSquare,
+    },
+    {
+      to: '/developer/resignation',
+      label: 'Resignation',
+      icon: FileText,
+    },
+    {
+      to: '/developer/leaves',
+      label: 'Leaves',
+      icon: Calendar,
+    },
+    {
+      to: '/developer/salary',
+      label: 'My Salary',
+      icon: IndianRupee,
+    },
 
-  {
-    to: '/developer/daily-status',
-    label: 'Daily Status',
-    icon: ClipboardList,
-  },
+    {
+      to: '/developer/daily-status',
+      label: 'Daily Status',
+      icon: ClipboardList,
+    },
 
-  {
-    to: '/developer/attendance',
-    label: 'Attendance',
-    icon: CalendarCheck,
-  },
+    {
+      to: '/developer/attendance',
+      label: 'Attendance',
+      icon: CalendarCheck,
+    },
 
-  {
-    to: '/developer/notifications',
-    label: 'Notifications',
-    icon: Bell,
-  },
+    {
+      to: '/developer/notifications',
+      label: 'Notifications',
+      icon: Bell,
+    },
 
-  {
-    to: '/developer/messages',
-    label: 'Messages',
-    icon: MessageSquare,
-  },
+    {
+      to: '/developer/messages',
+      label: 'Messages',
+      icon: MessageSquare,
+    },
 
-  {
-    to: '/developer/guide',
-    label: 'Guide',
-    icon: BookOpen,
-  },
+    {
+      to: '/developer/guide',
+      label: 'Guide',
+      icon: BookOpen,
+    },
 
-  {
-    to: '/developer/details',
-    label: 'Details',
-    icon: FileText,
-  },
-],
+    {
+      to: '/developer/details',
+      label: 'Details',
+      icon: FileText,
+    },
+  ],
 
   client: [
     {
@@ -290,16 +302,16 @@ const menus = {
       icon: FolderKanban,
     },
 
-   {
-    to: '/client/meetings',
-    label: 'My Meetings',
-    icon: Video,
-  },
-{
-  to: '/client/proposals',
-  label: 'Proposals',
-  icon: FileText,
-},
+    {
+      to: '/client/meetings',
+      label: 'My Meetings',
+      icon: Video,
+    },
+    {
+      to: '/client/proposals',
+      label: 'Proposals',
+      icon: FileText,
+    },
 
     {
       to: '/client/payments',
@@ -307,11 +319,11 @@ const menus = {
       icon: Wallet,
     },
 
-     {
-    to: '/client/products',
-    label: 'Products',
-    icon: Package,
-  },
+    {
+      to: '/client/products',
+      label: 'Products',
+      icon: Package,
+    },
 
     {
       to: '/client/messages',
@@ -319,7 +331,7 @@ const menus = {
       icon: MessageSquare,
     },
 
-    
+
   ],
 };
 
@@ -387,10 +399,9 @@ export default function Sidebar({ open, onClose }) {
               to={item.to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm transition ${
-                  isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-800'
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm transition ${isActive
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
                 }`
               }
             >
