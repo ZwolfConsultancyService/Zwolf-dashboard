@@ -338,6 +338,17 @@ export default function ManagerMeetings() {
 }
 
 function ManagerMeetingRow({ meeting: m }) {
+  // 🆕 Location + City + State — meeting se, warna client se fallback
+  const locationParts = [
+    m.location || m.client?.address,
+    m.city || m.client?.city,
+    m.state || m.client?.state,
+  ].filter(Boolean);
+
+  // 🆕 Duplicate hatao (e.g. "Noida, Noida, UP" na ho)
+  const uniqueLocationParts = [...new Set(locationParts.map((p) => p?.trim()))].filter(Boolean);
+  const fullLocation = uniqueLocationParts.join(', ');
+
   return (
     <div className="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
@@ -368,16 +379,19 @@ function ManagerMeetingRow({ meeting: m }) {
           <span className="font-medium">{m.startTime} – {m.endTime}</span>
           <span className="text-slate-400">({m.duration} min)</span>
         </div>
+
         {m.clientPhone && (
           <div className="flex items-center gap-1.5">
             <Phone size={12} className="text-slate-400" />
             <span>{m.clientPhone}</span>
           </div>
         )}
-        {m.location && (
+
+        {/* 🆕 Location + City + State — sab combined */}
+        {fullLocation && (
           <div className="flex items-center gap-1.5">
-            <MapPin size={12} className="text-slate-400" />
-            <span>{m.location}</span>
+            <MapPin size={12} className="text-slate-400 shrink-0" />
+            <span className="break-words">{fullLocation}</span>
           </div>
         )}
       </div>
