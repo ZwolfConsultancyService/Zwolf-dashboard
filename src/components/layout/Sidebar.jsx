@@ -14,6 +14,7 @@ import {
   X,
   BookOpen,
   FileText,
+  PlusCircle,
   Search,
   Inbox,
   Video,
@@ -23,8 +24,10 @@ import {
   PartyPopper,
   Calendar,
   IndianRupee,
-  CalendarIcon
-
+  CalendarIcon,
+  Tag,          // 🆕
+  UserCheck,    // 🆕
+  MapPin,       // 🆕
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -77,12 +80,26 @@ const menus = {
       label: 'Attendance',
       icon: CalendarCheck,
     },
-    // ✅ naya
-{
-  to: '/manager/meetings',
-  label: 'Schedule Meeting',
-  icon: CalendarIcon,
-},
+
+    // ✅ Meetings
+    {
+      to: '/manager/meetings',
+      label: 'Schedule Meeting',
+      icon: CalendarIcon,
+    },
+
+    // 🆕 Category + Location + Assignment
+    {
+      to: '/manager/categories',
+      label: 'Categories',
+      icon: Tag,
+    },
+    {
+      to: '/manager/assignments',
+      label: 'Assignments',
+      icon: UserCheck,
+    },
+
     {
       to: '/manager/attendance-settings',
       label: 'Attendance Settings',
@@ -106,7 +123,7 @@ const menus = {
     {
       to: '/manager/client-requests',
       label: 'Client Requests',
-      icon: Inbox,  // naya icon
+      icon: Inbox,
     },
 
     // Messages
@@ -169,11 +186,24 @@ const menus = {
       label: 'Client Requests',
       icon: Inbox,
     },
-{
-  to: '/sales/meetings',
-  label: 'Schedule Meeting',
-  icon: CalendarIcon,
+    {
+      to: '/sales/meetings',
+      label: 'Schedule Meeting',
+      icon: CalendarIcon,
+    },
+
+    // 🆕 My Assigned Areas
+    {
+      to: '/sales/my-assignments',
+      label: 'My Areas',
+      icon: MapPin,
+    },
+    {
+  to: '/sales/my-areas/manage',
+  label: 'Manage My Areas',
+  icon: PlusCircle,
 },
+
     {
       to: '/sales/leaves',
       label: 'Leaves',
@@ -330,8 +360,6 @@ const menus = {
       label: 'Messages',
       icon: MessageSquare,
     },
-
-
   ],
 };
 

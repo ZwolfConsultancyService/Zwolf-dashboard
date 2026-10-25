@@ -90,6 +90,16 @@ import ClientProposalDetail from './pages/client/ProposalDetail.jsx';
 import ManagerMeetings from './pages/manager/ManagerMeetings.jsx';
 import SalesMeetings from './pages/sales/SalesMeetings.jsx';
 
+// 🆕 Category + Location + Assignment pages
+import ManagerCategories from './pages/manager/Categories.jsx';
+import ManagerCategoryLocations from './pages/manager/CategoryLocations.jsx';
+import ManagerAssignments from './pages/manager/Assignments.jsx';
+import SalesMyAssignments from './pages/sales/MyAssignments.jsx';
+import SalesMyAreaManage from './pages/sales/MyAreaManage.jsx';
+import PdfViewer from './pages/manager/PdfViewer.jsx';
+import ProposalView from './pages/manager/ProposalView.jsx';
+
+import ProposalViewe from './pages/client/ProposalView.jsx';
 function RoleRedirect() {
   const { user, loading } = useAuth();
 
@@ -164,6 +174,12 @@ export default function App() {
           <Route path="products" element={<ManagerProducts />} />
           <Route path="attendance-settings" element={<ManagerAttendanceSettings />} />
           <Route path="leaves" element={<ManagerLeaves />} />
+          <Route path="categories" element={<ManagerCategories />} />
+          <Route
+            path="categories/:categoryId/locations"
+            element={<ManagerCategoryLocations />}
+          />
+          <Route path="assignments" element={<ManagerAssignments />} />
           <Route
             path="employees/:id"
             element={<ManagerEmployeeDetail />}
@@ -288,6 +304,9 @@ export default function App() {
           <Route path="leaves" element={<SalesLeaves />} />
           <Route path="salary" element={<SalesSalary />} />
           <Route path="resignation" element={<SalesResignation />} />
+          {/* 🆕 My Assigned Areas */}
+<Route path="my-assignments" element={<SalesMyAssignments />} />
+<Route path="my-areas/manage" element={<SalesMyAreaManage />} />
           {/* 🆕 PRODUCT DETAIL */}
           <Route
             path="products/:id"
@@ -459,6 +478,7 @@ export default function App() {
             path="dashboard"
             element={<ClientDashboard />}
           />
+          <Route path="proposals/:id/view" element={<ProposalViewe />} />
           <Route
             path="meetings"
             element={<MyMeetings />}
@@ -486,6 +506,9 @@ export default function App() {
         ========================== */}
 
         <Route path="/kiosk/attendance" element={<KioskAttendance />} />
+        <Route path="/pdf-viewer" element={<PdfViewer />} />
+        <Route path="/manager/proposals/:id/view" element={<ProposalView />} />
+
         <Route
           path="*"
           element={
