@@ -33,15 +33,8 @@ export default function MyAreaManage() {
   const [locForm, setLocForm] = useState({ name: '', parent: '' });
   const [locSaving, setLocSaving] = useState(false);
 
-  // 🆕 Lead modal
-  const [leadModal, setLeadModal] = useState(false);
-  const [leadTarget, setLeadTarget] = useState(null); // { category, location }
-  const [leadForm, setLeadForm] = useState({
-    clientName: '',
-    clientPhone: '',
-    notes: '',
-  });
-  const [leadSaving, setLeadSaving] = useState(false);
+  // 🆕 Lead loading state
+  const [leadLoadingId, setLeadLoadingId] = useState(null);
 
   const load = async () => {
     try {
@@ -148,32 +141,20 @@ export default function MyAreaManage() {
     }
   };
 
-  /* 🆕 Open lead modal */
-  const openLeadModal = (cat, node) => {
-    setLeadTarget({ category: cat, location: node });
-    setLeadForm({ clientName: '', clientPhone: '', notes: '' });
-    setLeadModal(true);
-  };
-
-  /* 🆕 Submit lead */
-  const submitLead = async (e) => {
-    e.preventDefault();
-    if (!leadTarget) return;
-    setLeadSaving(true);
+  /* 🆕 Direct Add Lead (+1 Counter) */
+  const handleAddLead = async (cat, node) => {
+    setLeadLoadingId(node._id);
     try {
       await api.post('/leads', {
-        category: leadTarget.category._id,
-        location: leadTarget.location._id,
-        ...leadForm,
+        category: cat._id,
+        location: node._id,
       });
-      success('Lead logged! 🎯');
-      setLeadModal(false);
-      setLeadTarget(null);
-      await load();
+      success('Lead count badh gaya! +1 🎯');
+      await load(); // Refresh karo taaki count update ho jaye
     } catch (err) {
       toastError(err.response?.data?.message || 'Failed');
     } finally {
-      setLeadSaving(false);
+      setLeadLoadingId(null);
     }
   };
 
@@ -198,14 +179,12 @@ export default function MyAreaManage() {
     const expandKey = `exp_${key}`;
     const isExpanded = expanded[expandKey];
 
-    // Status from myAssignments
     const myAssignment = myAssignments.find(
       (a) => `${a.category?._id}_${a.location?._id}` === key
     );
     const status = myAssignment?.status || null;
-
-    // Lead stats
     const leads = node.leadStats || { today: 0, total: 0 };
+    const isLeadLoading = leadLoadingId === node._id;
 
     let bgClass = 'bg-white border-slate-200';
     if (isMine) {
@@ -256,7 +235,6 @@ export default function MyAreaManage() {
               {node.name}
             </span>
 
-            {/* 🆕 Status badges — only for mine */}
             {isMine && status === 'Done' && (
               <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                 <CheckCircle2 size={10} /> Done
@@ -268,7 +246,7 @@ export default function MyAreaManage() {
               </span>
             )}
 
-            {/* 🆕 Lead badge */}
+            {/* Lead badge - shows count only */}
             {(isMine || isTakenByOther) && (
               <span
                 className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold ${
@@ -295,7 +273,6 @@ export default function MyAreaManage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Claim button */}
             {node.available && !isMine && (
               <button
                 onClick={() => handleClaim(cat, node)}
@@ -305,31 +282,32 @@ export default function MyAreaManage() {
               </button>
             )}
 
-            {/* 🆕 Log Lead button + Done/Pending toggle — only for mine */}
             {isMine && myAssignment && (
               <>
+                {/* 🆕 Simple +1 Lead Button */}
                 <button
-                  onClick={() => openLeadModal(cat, node)}
-                  className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-purple-700"
-                  title="Log a new lead for this location"
+                  onClick={() => handleAddLead(cat, node)}
+                  disabled={isLeadLoading}
+                  className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+                  title="Add +1 Lead"
                 >
-                  <Plus size={12} /> Log Lead
+                  {isLeadLoading ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <><Plus size={12} /> Lead</>
+                  )}
                 </button>
 
                 {status === 'Done' ? (
                   <button
-                    onClick={() =>
-                      handleToggleStatus(myAssignment._id, 'pending')
-                    }
+                    onClick={() => handleToggleStatus(myAssignment._id, 'pending')}
                     className="rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50"
                   >
                     Reopen
                   </button>
                 ) : (
                   <button
-                    onClick={() =>
-                      handleToggleStatus(myAssignment._id, 'done')
-                    }
+                    onClick={() => handleToggleStatus(myAssignment._id, 'done')}
                     className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
                   >
                     Mark Done
@@ -366,7 +344,7 @@ export default function MyAreaManage() {
             My Category Manager
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Nayi category banao, locations add karo, aur clients aate hi lead log karo.
+            Nayi category banao, locations add karo, aur client aate hi Lead button dabao.
           </p>
         </div>
         <div className="flex gap-2">
@@ -385,7 +363,7 @@ export default function MyAreaManage() {
         </div>
       </div>
 
-      {/* 🆕 Lead summary cards */}
+      {/* Lead summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-purple-600">
@@ -430,7 +408,7 @@ export default function MyAreaManage() {
             Aap jo bhi <strong>category ya location</strong> banayenge — wo{' '}
             <strong>automatically aapko assign</strong> ho jayegi. Doosre sales
             persons use select nahi kar payenge. Client aate hi{' '}
-            <strong>"Log Lead"</strong> button dabao.
+            <strong>"+ Lead"</strong> button dabao, count badh jayega.
           </p>
         </div>
       </div>
@@ -523,7 +501,6 @@ export default function MyAreaManage() {
                 myKeys.has(`${cat._id}_${loc._id}`)
               ) && cat.locations.length > 0;
 
-            // Category lead total
             const catLeadTotal = (cat.locations || []).reduce(
               (sum, loc) => sum + (loc.leadStats?.total || 0),
               0
@@ -550,7 +527,6 @@ export default function MyAreaManage() {
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
                       {cat.locations.length} loc
                     </span>
-                    {/* 🆕 Category lead total */}
                     {catLeadTotal > 0 && (
                       <span
                         className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -642,96 +618,6 @@ export default function MyAreaManage() {
                   className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {catSaving ? 'Creating...' : 'Create Category'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 🆕 Lead Modal */}
-      {leadModal && leadTarget && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-          onClick={() => setLeadModal(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-1 flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Log New Lead
-                </h2>
-                <p className="mt-0.5 text-sm text-slate-500">
-                  {leadTarget.category.name} → {leadTarget.location.name}
-                </p>
-              </div>
-              <button
-                onClick={() => setLeadModal(false)}
-                className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={submitLead} className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Client Name (optional)
-                </label>
-                <input
-                  placeholder="e.g. Rahul Sharma"
-                  value={leadForm.clientName}
-                  onChange={(e) =>
-                    setLeadForm({ ...leadForm, clientName: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Client Phone (optional)
-                </label>
-                <input
-                  placeholder="e.g. 9876543210"
-                  value={leadForm.clientPhone}
-                  onChange={(e) =>
-                    setLeadForm({ ...leadForm, clientPhone: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Notes (optional)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Kya baat hui, kya requirement hai..."
-                  value={leadForm.notes}
-                  onChange={(e) =>
-                    setLeadForm({ ...leadForm, notes: e.target.value })
-                  }
-                  className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setLeadModal(false)}
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={leadSaving}
-                  className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {leadSaving ? 'Saving...' : 'Log Lead'}
                 </button>
               </div>
             </form>
